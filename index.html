@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Note Taker</title>
+<style>
+/* ============ RESET & BASE ============ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#141416}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#f0f0f0;user-select:none;-webkit-user-select:none}
+button{cursor:pointer;border:none;background:none;font-family:inherit;color:inherit;font-size:inherit}
+input{font-family:inherit}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.25)}
+
+/* ============ LAYOUT ============ */
+#app{display:flex;width:100%;height:100%;overflow:hidden}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+#canvas-area{flex:1;overflow:auto;background:#141416;position:relative}
+#canvas-wrapper{display:flex;align-items:flex-start;justify-content:center;padding:40px;min-width:100%;min-height:100%}
+#drawing-canvas{
+  display:block;flex-shrink:0;
+  box-shadow:0 2px 8px rgba(0,0,0,.3),0 12px 40px rgba(0,0,0,.5),0 0 0 1px rgba(0,0,0,.2);
+  border-radius:3px;touch-action:none;cursor:crosshair;
+}
+
+/* ============ SIDEBAR ============ */
+#sidebar{
+  width:220px;min-width:220px;background:#1c1c1e;
+  border-right:1px solid rgba(255,255,255,.07);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:width .2s;position:relative;
+}
+#sidebar.collapsed{width:40px;min-width:40px}
+#sidebar.collapsed .sidebar-content{display:none}
+.sidebar-toggle{
+  position:absolute;top:10px;right:8px;
+  width:24px;height:24px;border-radius:5px;
+  font-size:12px;color:#666;display:flex;align-items:center;justify-content:center;
+  z-index:10;
+}
+.sidebar-toggle:hover{background:rgba(255,255,255,.08);color:#ccc}
+#sidebar.collapsed .sidebar-toggle{right:8px}
+.sidebar-content{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.sidebar-header{
+  padding:14px 38px 10px 14px;
+  border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;
+}
+.sidebar-header h2{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#777}
+.notebook-list{flex:1;overflow-y:auto;padding:6px 0}
+
+.nb-item{}
+.nb-btn{
+  display:flex;align-items:center;gap:8px;padding:8px 12px;
+  width:100%;text-align:left;color:#ccc;font-size:13px;
+  transition:background .1s;position:relative;
+}
+.nb-btn:hover{background:rgba(255,255,255,.06)}
+.nb-btn.active{background:rgba(10,132,255,.1);color:#5ac8fa}
+.nb-cover{
+  width:20px;height:20px;border-radius:5px;display:flex;
+  align-items:center;justify-content:center;font-size:11px;flex-shrink:0;
+}
+.nb-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.page-list{padding:2px 0 6px 28px}
+.pg-btn{
+  display:flex;align-items:center;gap:6px;padding:5px 10px;
+  width:100%;text-align:left;font-size:12px;color:#888;
+  border-radius:6px;margin:1px 0;transition:background .1s;
+}
+.pg-btn:hover{background:rgba(255,255,255,.06);color:#ccc}
+.pg-btn.active{background:rgba(10,132,255,.15);color:#5ac8fa}
+.pg-icon{font-size:11px;flex-shrink:0}
+.pg-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+
+.add-page-btn{
+  padding:4px 10px;font-size:11px;color:#555;
+  width:100%;text-align:left;border-radius:5px;margin-top:2px;
+}
+.add-page-btn:hover{background:rgba(255,255,255,.05);color:#999}
+
+.add-nb-btn{
+  margin:8px 12px;padding:9px 12px;font-size:12px;color:#555;
+  border:1px dashed rgba(255,255,255,.1);border-radius:8px;
+  width:calc(100% - 24px);text-align:center;transition:all .15s;
+}
+.add-nb-btn:hover{border-color:rgba(90,200,250,.4);color:#5ac8fa}
+
+.rename-input{
+  background:rgba(255,255,255,.1);border:1px solid #5ac8fa;border-radius:4px;
+  color:#f0f0f0;padding:2px 5px;font-size:12px;outline:none;flex:1;min-width:0;width:100%;
+}
+
+/* New notebook form */
+.new-nb-form{margin:6px 12px;display:flex;flex-direction:column;gap:7px}
+.new-nb-input{
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);
+  border-radius:6px;color:#f0f0f0;padding:6px 8px;font-size:12px;
+  outline:none;width:100%;
+}
+.new-nb-input:focus{border-color:#5ac8fa}
+.cover-color-grid{display:flex;flex-wrap:wrap;gap:5px}
+.cover-swatch{
+  width:20px;height:20px;border-radius:4px;
+  border:2px solid transparent;transition:transform .1s;
+}
+.cover-swatch:hover{transform:scale(1.15)}
+.cover-swatch.selected{border-color:#fff}
+.new-nb-actions{display:flex;gap:6px}
+.btn-create{flex:1;background:#0a84ff;color:#fff;border-radius:6px;padding:6px 0;font-size:12px;font-weight:600}
+.btn-create:hover{background:#0070d8}
+.btn-cancel-sm{flex:1;background:rgba(255,255,255,.08);color:#aaa;border-radius:6px;padding:6px 0;font-size:12px}
+.btn-cancel-sm:hover{background:rgba(255,255,255,.12)}
+
+/* Context menu */
+.ctx-menu{
+  position:fixed;z-index:1000;background:#2c2c2e;
+  border:1px solid rgba(255,255,255,.12);border-radius:8px;
+  padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.6);min-width:130px;
+}
+.ctx-menu button{
+  display:block;width:100%;text-align:left;padding:7px 12px;
+  font-size:13px;color:#f0f0f0;border-radius:5px;
+}
+.ctx-menu button:hover{background:rgba(255,255,255,.08)}
+.ctx-menu .danger{color:#ff453a!important}
+
+/* ============ TOOLBAR ============ */
+#toolbar{
+  display:flex;align-items:center;gap:3px;padding:6px 10px;
+  background:#252527;border-bottom:1px solid rgba(255,255,255,.07);
+  overflow-x:auto;flex-shrink:0;height:56px;
+}
+.tb-group{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.tb-divider{width:1px;height:28px;background:rgba(255,255,255,.1);margin:0 5px;flex-shrink:0}
+.tb-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:8px;font-size:18px;
+  transition:background .1s;color:#e0e0e0;flex-shrink:0;
+}
+.tb-btn:hover{background:rgba(255,255,255,.09)}
+.tb-btn.active{background:rgba(10,132,255,.28);color:#5ac8fa}
+.tb-btn:disabled{opacity:.3;pointer-events:none}
+.tb-btn.sm{font-size:16px;font-weight:600;color:#bbb}
+.zoom-label{font-size:12px;color:#888;width:38px;text-align:center;flex-shrink:0}
+
+/* Color grid */
+.color-grid{
+  display:grid;grid-template-columns:repeat(6,18px);
+  grid-template-rows:repeat(3,18px);gap:3px;
+}
+.color-swatch{
+  width:18px;height:18px;border-radius:4px;cursor:pointer;
+  border:2px solid transparent;transition:transform .1s,border-color .1s;
+}
+.color-swatch:hover{transform:scale(1.2)}
+.color-swatch.active{border-color:#5ac8fa;transform:scale(1.15)}
+.custom-color-label{
+  display:flex;align-items:center;justify-content:center;
+  width:30px;height:36px;cursor:pointer;font-size:17px;border-radius:7px;
+  position:relative;flex-shrink:0;
+}
+.custom-color-label:hover{background:rgba(255,255,255,.09)}
+.custom-color-label input{position:absolute;opacity:0;width:0;height:0}
+
+/* Size buttons */
+.size-btn{
+  display:flex;align-items:center;justify-content:center;
+  width:34px;height:36px;border-radius:7px;flex-shrink:0;transition:background .1s;
+}
+.size-btn:hover{background:rgba(255,255,255,.09)}
+.size-btn.active{background:rgba(10,132,255,.28)}
+.size-dot{border-radius:50%;display:block;flex-shrink:0}
+
+/* ============ PAGE SETTINGS MODAL ============ */
+#settings-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.65);
+  display:flex;align-items:center;justify-content:center;
+  z-index:500;backdrop-filter:blur(5px);
+}
+#settings-overlay[hidden]{display:none!important}
+.settings-panel{
+  background:#252527;border-radius:16px;
+  border:1px solid rgba(255,255,255,.1);
+  width:490px;max-width:95vw;max-height:90vh;
+  overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.7);
+}
+.settings-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,.07);
+}
+.settings-header h2{font-size:17px;font-weight:600}
+.settings-close{
+  font-size:14px;color:#888;width:28px;height:28px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+}
+.settings-close:hover{background:rgba(255,255,255,.1);color:#eee}
+.settings-section{padding:18px 20px 0}
+.settings-section h3{
+  font-size:11px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:#777;margin-bottom:12px;
+}
+
+.type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px}
+.type-card{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:14px 8px;border-radius:10px;
+  border:1.5px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);
+  cursor:pointer;transition:border-color .15s,background .15s;
+}
+.type-card:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.16)}
+.type-card.active{border-color:#0a84ff!important;background:rgba(10,132,255,.12)!important}
+.type-icon{font-size:22px}
+.type-label{font-size:12px;font-weight:600;color:#f0f0f0}
+.type-desc{font-size:10px;color:#666;text-align:center}
+
+.color-row{display:flex;gap:10px}
+.color-card{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:12px 20px;border-radius:10px;
+  border:1.5px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);
+  cursor:pointer;transition:border-color .15s;flex:1;
+}
+.color-card:hover{border-color:rgba(255,255,255,.16)}
+.color-card.active{border-color:#0a84ff!important;background:rgba(10,132,255,.1)!important}
+.color-circle{width:32px;height:32px;border-radius:50%;display:block}
+.color-card-label{font-size:12px;color:#ccc;font-weight:500}
+
+.spacing-row{display:flex;gap:7px;flex-wrap:wrap}
+.spacing-btn{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:9px 12px;border-radius:8px;
+  border:1.5px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);
+  cursor:pointer;transition:border-color .15s;flex:1;min-width:65px;
+}
+.spacing-btn:hover{border-color:rgba(255,255,255,.16)}
+.spacing-btn.active{border-color:#0a84ff!important;background:rgba(10,132,255,.12)!important}
+.spacing-label{font-size:12px;font-weight:600;color:#f0f0f0}
+.spacing-desc{font-size:10px;color:#666}
+
+.settings-footer{padding:20px;display:flex;justify-content:flex-end}
+.btn-done{
+  background:#0a84ff;color:#fff;font-weight:600;font-size:14px;
+  padding:9px 28px;border-radius:10px;
+}
+.btn-done:hover{background:#0070d8}
+
+/* Rubber eraser cursor */
+#drawing-canvas.eraser-cursor{cursor:cell}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <button class="sidebar-toggle" id="sidebar-toggle">◀</button>
+    <div class="sidebar-content">
+      <div class="sidebar-header"><h2>Notebooks</h2></div>
+      <div class="notebook-list" id="notebook-list"></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- TOOLBAR -->
+    <div id="toolbar">
+      <!-- Tools -->
+      <div class="tb-group">
+        <button class="tb-btn" id="tool-pen" title="Pen (P)">✏️</button>
+        <button class="tb-btn" id="tool-pencil" title="Pencil">🖊️</button>
+        <button class="tb-btn" id="tool-highlighter" title="Highlighter (H)">🖍️</button>
+        <button class="tb-btn" id="tool-eraser" title="Eraser (E)">⬜</button>
+      </div>
+      <div class="tb-divider"></div>
+      <!-- Colors -->
+      <div class="tb-group">
+        <div class="color-grid" id="color-grid"></div>
+        <label class="custom-color-label" title="Custom color">
+          🎨<input type="color" id="custom-color" value="#000000"/>
+        </label>
+      </div>
+      <div class="tb-divider"></div>
+      <!-- Sizes -->
+      <div class="tb-group" id="size-group"></div>
+      <div class="tb-divider"></div>
+      <!-- History -->
+      <div class="tb-group">
+        <button class="tb-btn" id="btn-undo" title="Undo (⌘Z)" disabled>↩️</button>
+        <button class="tb-btn" id="btn-redo" title="Redo (⌘⇧Z)" disabled>↪️</button>
+      </div>
+      <div class="tb-divider"></div>
+      <!-- Zoom -->
+      <div class="tb-group">
+        <button class="tb-btn sm" id="btn-zoom-out" title="Zoom out (-)">−</button>
+        <span class="zoom-label" id="zoom-label">100%</span>
+        <button class="tb-btn sm" id="btn-zoom-in" title="Zoom in (+)">+</button>
+        <button class="tb-btn sm" id="btn-zoom-reset" title="Reset zoom" style="font-size:13px">⊙</button>
+      </div>
+      <div class="tb-divider"></div>
+      <!-- Actions -->
+      <div class="tb-group">
+        <button class="tb-btn" id="btn-settings" title="Page settings">⚙️</button>
+        <button class="tb-btn" id="btn-export" title="Export as PNG">💾</button>
+        <button class="tb-btn" id="btn-clear" title="Clear page">🗑️</button>
+      </div>
+    </div>
+
+    <!-- CANVAS AREA -->
+    <div id="canvas-area">
+      <div id="canvas-wrapper">
+        <canvas id="drawing-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE SETTINGS MODAL -->
+<div id="settings-overlay" hidden>
+  <div class="settings-panel">
+    <div class="settings-header">
+      <h2>Page Settings</h2>
+      <button class="settings-close" id="settings-close">✕</button>
+    </div>
+
+    <div class="settings-section">
+      <h3>Paper Type</h3>
+      <div class="type-grid">
+        <button class="type-card" data-type="lined">
+          <span class="type-icon">📄</span>
+          <span class="type-label">Lined</span>
+          <span class="type-desc">Horizontal rules</span>
+        </button>
+        <button class="type-card" data-type="unlined">
+          <span class="type-icon">⬜</span>
+          <span class="type-label">Blank</span>
+          <span class="type-desc">Clean paper</span>
+        </button>
+        <button class="type-card" data-type="dotgrid">
+          <span class="type-icon">·</span>
+          <span class="type-label">Dot Grid</span>
+          <span class="type-desc">Subtle dots</span>
+        </button>
+        <button class="type-card" data-type="whiteboard">
+          <span class="type-icon">🖼️</span>
+          <span class="type-label">Whiteboard</span>
+          <span class="type-desc">Extra large</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <h3>Paper Color</h3>
+      <div class="color-row">
+        <button class="color-card" data-color="white">
+          <span class="color-circle" style="background:#FFFFFF;border:1.5px solid #555"></span>
+          <span class="color-card-label">White</span>
+        </button>
+        <button class="color-card" data-color="black">
+          <span class="color-circle" style="background:#1a1a1a"></span>
+          <span class="color-card-label">Dark</span>
+        </button>
+        <button class="color-card" data-color="beige">
+          <span class="color-circle" style="background:#F5E6C8"></span>
+          <span class="color-card-label">Warm Tan</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-section" id="spacing-section">
+      <h3>Line / Dot Spacing</h3>
+      <div class="spacing-row">
+        <button class="spacing-btn" data-spacing="20">
+          <span class="spacing-label">Narrow</span><span class="spacing-desc">~5mm</span>
+        </button>
+        <button class="spacing-btn" data-spacing="28">
+          <span class="spacing-label">College</span><span class="spacing-desc">~7mm</span>
+        </button>
+        <button class="spacing-btn" data-spacing="32">
+          <span class="spacing-label">Medium</span><span class="spacing-desc">~8mm</span>
+        </button>
+        <button class="spacing-btn" data-spacing="40">
+          <span class="spacing-label">Wide</span><span class="spacing-desc">~10mm</span>
+        </button>
+        <button class="spacing-btn" data-spacing="52">
+          <span class="spacing-label">Jumbo</span><span class="spacing-desc">~13mm</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-footer">
+      <button class="btn-done" id="settings-done">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx-menu" id="ctx-menu" style="display:none"></div>
+
+<script>
+// ============================================================
+//  HELPERS
+// ============================================================
+function genId(){return Math.random().toString(36).slice(2)+Date.now().toString(36)}
+
+// ============================================================
+//  PAPER RENDERING
+// ============================================================
+const PAPER_BG = { white:'#FFFFFF', black:'#1a1a1a', beige:'#F5E6C8' }
+const LINE_CLR = { white:'rgba(180,195,220,.55)', black:'rgba(70,90,110,.5)', beige:'rgba(175,150,105,.5)' }
+const DOT_CLR  = { white:'rgba(150,170,200,.7)',  black:'rgba(85,105,125,.55)', beige:'rgba(155,130,90,.55)' }
+const MARGIN_CLR = { white:'rgba(255,150,150,.4)', black:'rgba(170,75,75,.3)', beige:'rgba(195,115,95,.4)' }
+
+function drawPaper(ctx, page, w, h){
+  const {paperType, paperColor, lineSpacing} = page
+  const bg = PAPER_BG[paperColor]||'#fff'
+  ctx.fillStyle = bg
+  ctx.fillRect(0,0,w,h)
+  if(paperType==='lined') drawLined(ctx,paperColor,lineSpacing,w,h)
+  else if(paperType==='dotgrid') drawDotGrid(ctx,paperColor,lineSpacing,w,h)
+  else if(paperType==='whiteboard') drawWhiteboard(ctx,paperColor,w,h)
+}
+
+function drawLined(ctx,pc,spacing,w,h){
+  ctx.lineWidth=.9
+  ctx.strokeStyle=LINE_CLR[pc]||LINE_CLR.white
+  ctx.beginPath()
+  for(let y=spacing*2.5;y<h;y+=spacing){
+    ctx.moveTo(0,Math.round(y)+.5)
+    ctx.lineTo(w,Math.round(y)+.5)
+  }
+  ctx.stroke()
+  // margin
+  const mx=72
+  ctx.lineWidth=1.5
+  ctx.strokeStyle=MARGIN_CLR[pc]||MARGIN_CLR.white
+  ctx.beginPath();ctx.moveTo(mx+.5,0);ctx.lineTo(mx+.5,h);ctx.stroke()
+  // hole punches
+  const hc=pc==='white'?'rgba(215,220,232,.85)':pc==='black'?'rgba(38,43,52,.85)':'rgba(205,185,150,.8)'
+  ctx.fillStyle=hc
+  ;[h*.25,h*.5,h*.75].forEach(y=>{
+    ctx.beginPath();ctx.arc(28,y,9,0,Math.PI*2);ctx.fill()
+  })
+}
+
+function drawDotGrid(ctx,pc,spacing,w,h){
+  ctx.fillStyle=DOT_CLR[pc]||DOT_CLR.white
+  for(let y=spacing;y<h;y+=spacing)
+    for(let x=spacing;x<w;x+=spacing){
+      ctx.beginPath();ctx.arc(x,y,1.5,0,Math.PI*2);ctx.fill()
+    }
+}
+
+function drawWhiteboard(ctx,pc,w,h){
+  const c=pc==='black'?'rgba(65,78,95,.28)':pc==='beige'?'rgba(165,140,100,.2)':'rgba(195,207,222,.28)'
+  const sp=40
+  ctx.strokeStyle=c;ctx.lineWidth=.5
+  ctx.beginPath()
+  for(let x=sp;x<w;x+=sp){ctx.moveTo(x+.5,0);ctx.lineTo(x+.5,h)}
+  for(let y=sp;y<h;y+=sp){ctx.moveTo(0,y+.5);ctx.lineTo(w,y+.5)}
+  ctx.stroke()
+}
+
+// ============================================================
+//  STROKE RENDERING
+// ============================================================
+function drawStroke(ctx,stroke){
+  const {points,tool,color,size,opacity=1}=stroke
+  if(!points||!points.length)return
+  ctx.save()
+  ctx.globalAlpha=opacity
+  ctx.strokeStyle=color
+  ctx.lineWidth=size
+  ctx.lineCap='round';ctx.lineJoin='round'
+  if(tool==='highlighter'){
+    ctx.globalCompositeOperation='multiply'
+    ctx.globalAlpha=.38
+  } else if(tool==='eraser'){
+    ctx.globalCompositeOperation='destination-out'
+    ctx.globalAlpha=1
+  } else {
+    ctx.globalCompositeOperation='source-over'
+  }
+  if(points.length===1){
+    const c=tool==='eraser'?'rgba(0,0,0,1)':color
+    ctx.fillStyle=c
+    ctx.globalCompositeOperation=tool==='eraser'?'destination-out':'source-over'
+    ctx.beginPath();ctx.arc(points[0].x,points[0].y,size/2,0,Math.PI*2);ctx.fill()
+    ctx.restore();return
+  }
+  ctx.beginPath();ctx.moveTo(points[0].x,points[0].y)
+  if(points.length===2){ctx.lineTo(points[1].x,points[1].y)}
+  else {
+    for(let i=1;i<points.length-1;i++){
+      const mx=(points[i].x+points[i+1].x)/2
+      const my=(points[i].y+points[i+1].y)/2
+      ctx.quadraticCurveTo(points[i].x,points[i].y,mx,my)
+    }
+    const L=points[points.length-1]
+    ctx.lineTo(L.x,L.y)
+  }
+  ctx.stroke();ctx.restore()
+}
+
+// ============================================================
+//  STATE
+// ============================================================
+const CANVAS_SIZES={
+  lined:{w:850,h:1100}, unlined:{w:850,h:1100},
+  dotgrid:{w:850,h:1100}, whiteboard:{w:2400,h:1600}
+}
+
+function createPage(o={}){
+  return {id:genId(),name:'Page 1',paperType:'lined',paperColor:'white',lineSpacing:32,strokes:[],...o}
+}
+function createNotebook(o={}){
+  const id=genId(), page=createPage({name:'Page 1'})
+  return {id,name:'My Notebook',coverColor:'#e74c3c',pages:[page],...o}
+}
+function getInitialState(){
+  const nb1=createNotebook({name:'My Notebook',coverColor:'#e74c3c'})
+  const nb2=createNotebook({name:'Whiteboard',coverColor:'#2980b9',
+    pages:[createPage({name:'Board 1',paperType:'whiteboard',paperColor:'white'})]})
+  const nb3=createNotebook({name:'Dot Grid Notes',coverColor:'#27ae60',
+    pages:[createPage({name:'Page 1',paperType:'dotgrid',paperColor:'beige',lineSpacing:28})]})
+  return {notebooks:[nb1,nb2,nb3],activeNotebookId:nb1.id,activePageId:nb1.pages[0].id}
+}
+
+function loadState(){
+  try{const r=localStorage.getItem('note-taker-v2');if(r)return JSON.parse(r)}catch{}
+  return null
+}
+function saveState(){
+  try{localStorage.setItem('note-taker-v2',JSON.stringify(state))}catch(e){console.warn(e)}
+}
+
+let state = loadState() || getInitialState()
+
+// Drawing config
+const draw = {tool:'pen', color:'#1a1a2e', size:4, zoom:1}
+
+// Undo history per page
+const pageHistory = {} // pageId -> {past:[], future:[]}
+function getHist(id){if(!pageHistory[id])pageHistory[id]={past:[],future:[]};return pageHistory[id]}
+
+function getActiveNotebook(){return state.notebooks.find(n=>n.id===state.activeNotebookId)}
+function getActivePage(){return getActiveNotebook()?.pages.find(p=>p.id===state.activePageId)}
+
+// ============================================================
+//  CANVAS ENGINE
+// ============================================================
+const canvas = document.getElementById('drawing-canvas')
+const ctx = canvas.getContext('2d')
+let offscreen = null  // committed strokes canvas
+let isDrawing = false
+let currentStroke = null
+
+function getCanvasSize(paperType){return CANVAS_SIZES[paperType]||CANVAS_SIZES.lined}
+
+function initOffscreen(page){
+  const {w,h}=getCanvasSize(page.paperType)
+  offscreen=document.createElement('canvas')
+  offscreen.width=w;offscreen.height=h
+  rebuildOffscreen(page)
+}
+
+function rebuildOffscreen(page){
+  if(!offscreen)return
+  const {w,h}=getCanvasSize(page.paperType)
+  const octx=offscreen.getContext('2d')
+  octx.clearRect(0,0,w,h)
+  drawPaper(octx,page,w,h)
+  page.strokes.forEach(s=>drawStroke(octx,s))
+}
+
+function renderCanvas(){
+  const page=getActivePage();if(!page)return
+  const {w,h}=getCanvasSize(page.paperType)
+  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}
+  // Set display size based on zoom
+  canvas.style.width=w*draw.zoom+'px'
+  canvas.style.height=h*draw.zoom+'px'
+  // Draw offscreen to main canvas
+  if(offscreen){ctx.clearRect(0,0,w,h);ctx.drawImage(offscreen,0,0)}
+  // Draw in-progress stroke
+  if(currentStroke)drawStroke(ctx,currentStroke)
+}
+
+function toCanvasCoords(e){
+  const rect=canvas.getBoundingClientRect()
+  const {w,h}=getCanvasSize(getActivePage()?.paperType||'lined')
+  return {
+    x:(e.clientX-rect.left)*(w/rect.width),
+    y:(e.clientY-rect.top)*(h/rect.height),
+    pressure:e.pressure||0.5
+  }
+}
+
+canvas.addEventListener('pointerdown',e=>{
+  if(e.button!==0)return
+  e.preventDefault()
+  canvas.setPointerCapture(e.pointerId)
+  isDrawing=true
+  const pt=toCanvasCoords(e)
+  const isEraser=draw.tool==='eraser'
+  currentStroke={
+    id:genId(),tool:draw.tool,
+    color:isEraser?'rgba(0,0,0,1)':draw.color,
+    size:isEraser?draw.size*3:draw.size,
+    opacity:draw.tool==='highlighter'?.4:1,
+    points:[pt]
+  }
+})
+
+canvas.addEventListener('pointermove',e=>{
+  if(!isDrawing||!currentStroke)return
+  e.preventDefault()
+  currentStroke.points.push(toCanvasCoords(e))
+  renderCanvas()
+})
+
+canvas.addEventListener('pointerup',commitStroke)
+canvas.addEventListener('pointerleave',commitStroke)
+
+function commitStroke(){
+  if(!isDrawing)return
+  isDrawing=false
+  if(!currentStroke||!currentStroke.points.length){currentStroke=null;return}
+  const page=getActivePage();if(!page){currentStroke=null;return}
+  const hist=getHist(page.id)
+  hist.past=[...hist.past.slice(-60),page.strokes.slice()]
+  hist.future=[]
+  page.strokes.push(currentStroke)
+  currentStroke=null
+  // Paint stroke onto offscreen
+  if(offscreen){
+    const octx=offscreen.getContext('2d')
+    const last=page.strokes[page.strokes.length-1]
+    drawStroke(octx,last)
+  }
+  renderCanvas()
+  saveState()
+  updateUndoButtons()
+}
+
+// ============================================================
+//  TOOLBAR SETUP
+// ============================================================
+const PEN_COLORS=[
+  '#1a1a2e','#000000','#2c3e50',
+  '#e74c3c','#c0392b','#e67e22',
+  '#f39c12','#27ae60','#16a085',
+  '#2980b9','#8e44ad','#6c3483',
+  '#ffffff','#bdc3c7','#7f8c8d',
+  '#f8e6c2','#d4a574','#8b4513'
+]
+const BRUSH_SIZES=[2,4,6,10,16,24]
+
+function buildToolbar(){
+  // Color grid
+  const grid=document.getElementById('color-grid')
+  PEN_COLORS.forEach(c=>{
+    const btn=document.createElement('button')
+    btn.className='color-swatch'+(draw.color===c?' active':'')
+    btn.style.background=c
+    if(c==='#ffffff')btn.style.border='1.5px solid #555'
+    btn.title=c
+    btn.addEventListener('click',()=>setColor(c))
+    grid.appendChild(btn)
+  })
+
+  // Size buttons
+  const sg=document.getElementById('size-group')
+  BRUSH_SIZES.forEach(s=>{
+    const btn=document.createElement('button')
+    btn.className='size-btn'+(draw.size===s?' active':'')
+    btn.title=s+'px'
+    const dot=document.createElement('span')
+    dot.className='size-dot'
+    dot.style.cssText=`width:${Math.min(s,22)}px;height:${Math.min(s,22)}px;background:${draw.color};`
+    if(draw.color==='#ffffff')dot.style.border='1px solid #888'
+    btn.appendChild(dot)
+    btn.addEventListener('click',()=>setSize(s))
+    sg.appendChild(btn)
+  })
+
+  // Tool buttons
+  document.getElementById('tool-pen').addEventListener('click',()=>setTool('pen'))
+  document.getElementById('tool-pencil').addEventListener('click',()=>setTool('pencil'))
+  document.getElementById('tool-highlighter').addEventListener('click',()=>setTool('highlighter'))
+  document.getElementById('tool-eraser').addEventListener('click',()=>setTool('eraser'))
+
+  // Custom color
+  const cc=document.getElementById('custom-color')
+  cc.value=draw.color
+  cc.addEventListener('input',e=>setColor(e.target.value))
+
+  // History
+  document.getElementById('btn-undo').addEventListener('click',undo)
+  document.getElementById('btn-redo').addEventListener('click',redo)
+
+  // Zoom
+  document.getElementById('btn-zoom-out').addEventListener('click',()=>setZoom(Math.max(.25,+(draw.zoom-.1).toFixed(2))))
+  document.getElementById('btn-zoom-in').addEventListener('click',()=>setZoom(Math.min(4,+(draw.zoom+.1).toFixed(2))))
+  document.getElementById('btn-zoom-reset').addEventListener('click',()=>setZoom(1))
+
+  // Actions
+  document.getElementById('btn-settings').addEventListener('click',openSettings)
+  document.getElementById('btn-export').addEventListener('click',exportPNG)
+  document.getElementById('btn-clear').addEventListener('click',clearPage)
+
+  // Set initial active
+  updateToolButtons()
+}
+
+function setTool(t){
+  draw.tool=t
+  canvas.classList.toggle('eraser-cursor',t==='eraser')
+  updateToolButtons()
+}
+
+function setColor(c){
+  draw.color=c
+  document.getElementById('custom-color').value=c
+  document.querySelectorAll('.color-swatch').forEach(el=>{
+    el.classList.toggle('active',el.title===c)
+  })
+  document.querySelectorAll('.size-dot').forEach(el=>{
+    el.style.background=c
+    el.style.border=c==='#ffffff'?'1px solid #888':''
+  })
+}
+
+function setSize(s){
+  draw.size=s
+  document.querySelectorAll('.size-btn').forEach((el,i)=>{
+    el.classList.toggle('active',BRUSH_SIZES[i]===s)
+  })
+}
+
+function setZoom(z){
+  draw.zoom=z
+  document.getElementById('zoom-label').textContent=Math.round(z*100)+'%'
+  renderCanvas()
+}
+
+function updateToolButtons(){
+  ;['pen','pencil','highlighter','eraser'].forEach(t=>{
+    document.getElementById('tool-'+t).classList.toggle('active',draw.tool===t)
+  })
+}
+
+function updateUndoButtons(){
+  const page=getActivePage()
+  if(!page){
+    document.getElementById('btn-undo').disabled=true
+    document.getElementById('btn-redo').disabled=true
+    return
+  }
+  const h=getHist(page.id)
+  document.getElementById('btn-undo').disabled=h.past.length===0
+  document.getElementById('btn-redo').disabled=h.future.length===0
+}
+
+// ============================================================
+//  UNDO / REDO
+// ============================================================
+function undo(){
+  const page=getActivePage();if(!page)return
+  const h=getHist(page.id);if(!h.past.length)return
+  h.future=[page.strokes.slice(),...h.future]
+  page.strokes=h.past.pop()
+  rebuildOffscreen(page);renderCanvas();saveState();updateUndoButtons()
+}
+function redo(){
+  const page=getActivePage();if(!page)return
+  const h=getHist(page.id);if(!h.future.length)return
+  h.past=[...h.past,page.strokes.slice()]
+  page.strokes=h.future.shift()
+  rebuildOffscreen(page);renderCanvas();saveState();updateUndoButtons()
+}
+
+function clearPage(){
+  const page=getActivePage();if(!page)return
+  if(!confirm('Clear all strokes on this page?'))return
+  const h=getHist(page.id)
+  h.past=[...h.past,page.strokes.slice()];h.future=[]
+  page.strokes=[]
+  rebuildOffscreen(page);renderCanvas();saveState();updateUndoButtons()
+}
+
+function exportPNG(){
+  const page=getActivePage();if(!page)return
+  const a=document.createElement('a')
+  a.href=canvas.toDataURL('image/png')
+  a.download=(page.name||'page')+'.png'
+  a.click()
+}
+
+// ============================================================
+//  PAGE SETTINGS MODAL
+// ============================================================
+function openSettings(){
+  const page=getActivePage();if(!page)return
+  // Update active states
+  document.querySelectorAll('.type-card').forEach(el=>{
+    el.classList.toggle('active',el.dataset.type===page.paperType)
+  })
+  document.querySelectorAll('.color-card').forEach(el=>{
+    el.classList.toggle('active',el.dataset.color===page.paperColor)
+  })
+  document.querySelectorAll('.spacing-btn').forEach(el=>{
+    el.classList.toggle('active',+el.dataset.spacing===page.lineSpacing)
+  })
+  // Show/hide spacing section
+  const showSpacing=page.paperType==='lined'||page.paperType==='dotgrid'
+  document.getElementById('spacing-section').style.display=showSpacing?'':'none'
+  document.getElementById('settings-overlay').hidden=false
+}
+
+function closeSettings(){document.getElementById('settings-overlay').hidden=true}
+
+document.getElementById('settings-close').addEventListener('click',closeSettings)
+document.getElementById('settings-done').addEventListener('click',closeSettings)
+document.getElementById('settings-overlay').addEventListener('click',e=>{
+  if(e.target===document.getElementById('settings-overlay'))closeSettings()
+})
+
+document.querySelectorAll('.type-card').forEach(el=>{
+  el.addEventListener('click',()=>{
+    const page=getActivePage();if(!page)return
+    page.paperType=el.dataset.type
+    document.querySelectorAll('.type-card').forEach(c=>c.classList.toggle('active',c===el))
+    const showSpacing=page.paperType==='lined'||page.paperType==='dotgrid'
+    document.getElementById('spacing-section').style.display=showSpacing?'':'none'
+    initOffscreen(page);renderCanvas();saveState()
+    // Resize canvas
+    const {w,h}=getCanvasSize(page.paperType)
+    canvas.width=w;canvas.height=h
+    initOffscreen(page);renderCanvas()
+  })
+})
+
+document.querySelectorAll('.color-card').forEach(el=>{
+  el.addEventListener('click',()=>{
+    const page=getActivePage();if(!page)return
+    page.paperColor=el.dataset.color
+    document.querySelectorAll('.color-card').forEach(c=>c.classList.toggle('active',c===el))
+    rebuildOffscreen(page);renderCanvas();saveState()
+  })
+})
+
+document.querySelectorAll('.spacing-btn').forEach(el=>{
+  el.addEventListener('click',()=>{
+    const page=getActivePage();if(!page)return
+    page.lineSpacing=+el.dataset.spacing
+    document.querySelectorAll('.spacing-btn').forEach(c=>c.classList.toggle('active',c===el))
+    rebuildOffscreen(page);renderCanvas();saveState()
+  })
+})
+
+// ============================================================
+//  SIDEBAR RENDERING
+// ============================================================
+const COVER_COLORS=[
+  '#e74c3c','#c0392b','#e67e22','#f39c12',
+  '#27ae60','#16a085','#2980b9','#8e44ad',
+  '#2c3e50','#7f8c8d','#d4a574','#6c3483'
+]
+
+let editingNotebookId=null, editingPageId=null
+let showNewNbForm=false, newNbColor=COVER_COLORS[0]
+
+function getPageIcon(t){
+  return {lined:'📄',unlined:'⬜',dotgrid:'⋯',whiteboard:'🖼️'}[t]||'📄'
+}
+
+function renderSidebar(){
+  const list=document.getElementById('notebook-list')
+  list.innerHTML=''
+
+  state.notebooks.forEach(nb=>{
+    const isActiveNb=nb.id===state.activeNotebookId
+    const nbDiv=document.createElement('div')
+    nbDiv.className='nb-item'
+
+    // Notebook button
+    const nbBtn=document.createElement('button')
+    nbBtn.className='nb-btn'+(isActiveNb?' active':'')
+    const cover=document.createElement('span')
+    cover.className='nb-cover'
+    cover.style.background=nb.coverColor
+    cover.textContent='📓'
+    nbBtn.appendChild(cover)
+    if(editingNotebookId===nb.id){
+      const inp=document.createElement('input')
+      inp.className='rename-input'
+      inp.value=nb.name
+      inp.addEventListener('click',e=>e.stopPropagation())
+      inp.addEventListener('blur',e=>{nb.name=e.target.value.trim()||nb.name;editingNotebookId=null;renderSidebar();saveState()})
+      inp.addEventListener('keydown',e=>{
+        if(e.key==='Enter'){nb.name=e.target.value.trim()||nb.name;editingNotebookId=null;renderSidebar();saveState()}
+        if(e.key==='Escape'){editingNotebookId=null;renderSidebar()}
+      })
+      nbBtn.appendChild(inp)
+      setTimeout(()=>inp.focus(),0)
+    } else {
+      const nameSpan=document.createElement('span')
+      nameSpan.className='nb-name'
+      nameSpan.textContent=nb.name
+      nbBtn.appendChild(nameSpan)
+    }
+    nbBtn.addEventListener('click',()=>selectNotebook(nb.id))
+    nbBtn.addEventListener('contextmenu',e=>{e.preventDefault();showCtxMenu(e,'notebook',nb.id)})
+    nbDiv.appendChild(nbBtn)
+
+    // Page list (only for active notebook)
+    if(isActiveNb){
+      const pgList=document.createElement('div')
+      pgList.className='page-list'
+      nb.pages.forEach(pg=>{
+        const pgBtn=document.createElement('button')
+        pgBtn.className='pg-btn'+(pg.id===state.activePageId?' active':'')
+        const icon=document.createElement('span')
+        icon.className='pg-icon'
+        icon.textContent=getPageIcon(pg.paperType)
+        pgBtn.appendChild(icon)
+        if(editingPageId===pg.id){
+          const inp=document.createElement('input')
+          inp.className='rename-input'
+          inp.value=pg.name
+          inp.style.fontSize='12px'
+          inp.addEventListener('click',e=>e.stopPropagation())
+          inp.addEventListener('blur',e=>{pg.name=e.target.value.trim()||pg.name;editingPageId=null;renderSidebar();saveState()})
+          inp.addEventListener('keydown',e=>{
+            if(e.key==='Enter'){pg.name=e.target.value.trim()||pg.name;editingPageId=null;renderSidebar();saveState()}
+            if(e.key==='Escape'){editingPageId=null;renderSidebar()}
+          })
+          pgBtn.appendChild(inp)
+          setTimeout(()=>inp.focus(),0)
+        } else {
+          const nameSpan=document.createElement('span')
+          nameSpan.className='pg-name'
+          nameSpan.textContent=pg.name
+          pgBtn.appendChild(nameSpan)
+        }
+        pgBtn.addEventListener('click',()=>selectPage(pg.id))
+        pgBtn.addEventListener('contextmenu',e=>{e.preventDefault();showCtxMenu(e,'page',pg.id,nb.id)})
+        pgList.appendChild(pgBtn)
+      })
+      // Add page button
+      const addPg=document.createElement('button')
+      addPg.className='add-page-btn'
+      addPg.textContent='+ Add page'
+      addPg.addEventListener('click',()=>addPage(nb.id))
+      pgList.appendChild(addPg)
+      nbDiv.appendChild(pgList)
+    }
+
+    list.appendChild(nbDiv)
+  })
+
+  // New notebook
+  if(showNewNbForm){
+    const form=document.createElement('div')
+    form.className='new-nb-form'
+    const inp=document.createElement('input')
+    inp.className='new-nb-input'
+    inp.placeholder='Notebook name…'
+    const cgrid=document.createElement('div')
+    cgrid.className='cover-color-grid'
+    COVER_COLORS.forEach(c=>{
+      const sw=document.createElement('button')
+      sw.className='cover-swatch'+(newNbColor===c?' selected':'')
+      sw.style.background=c
+      sw.addEventListener('click',()=>{newNbColor=c;cgrid.querySelectorAll('.cover-swatch').forEach(s=>s.classList.toggle('selected',s===sw))})
+      cgrid.appendChild(sw)
+    })
+    const actions=document.createElement('div')
+    actions.className='new-nb-actions'
+    const create=document.createElement('button')
+    create.className='btn-create';create.textContent='Create'
+    create.addEventListener('click',()=>{addNotebook(inp.value||'New Notebook',newNbColor);showNewNbForm=false;renderSidebar()})
+    const cancel=document.createElement('button')
+    cancel.className='btn-cancel-sm';cancel.textContent='Cancel'
+    cancel.addEventListener('click',()=>{showNewNbForm=false;renderSidebar()})
+    actions.appendChild(create);actions.appendChild(cancel)
+    form.appendChild(inp);form.appendChild(cgrid);form.appendChild(actions)
+    list.appendChild(form)
+    setTimeout(()=>inp.focus(),0)
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){addNotebook(inp.value||'New Notebook',newNbColor);showNewNbForm=false;renderSidebar()}
+      if(e.key==='Escape'){showNewNbForm=false;renderSidebar()}
+    })
+  } else {
+    const addNb=document.createElement('button')
+    addNb.className='add-nb-btn'
+    addNb.textContent='+ New Notebook'
+    addNb.addEventListener('click',()=>{showNewNbForm=true;renderSidebar()})
+    list.appendChild(addNb)
+  }
+}
+
+// ============================================================
+//  CONTEXT MENU
+// ============================================================
+const ctxMenu=document.getElementById('ctx-menu')
+let ctxData=null
+
+function showCtxMenu(e,type,id,notebookId=null){
+  ctxData={type,id,notebookId}
+  ctxMenu.innerHTML=''
+  if(type==='notebook'){
+    addCtxItem('Rename',()=>{editingNotebookId=id;renderSidebar()})
+    addCtxItem('Delete','danger',()=>deleteNotebook(id))
+  } else {
+    addCtxItem('Rename',()=>{editingPageId=id;renderSidebar()})
+    addCtxItem('Delete','danger',()=>deletePage(notebookId,id))
+  }
+  ctxMenu.style.display='block'
+  ctxMenu.style.left=Math.min(e.clientX,window.innerWidth-150)+'px'
+  ctxMenu.style.top=Math.min(e.clientY,window.innerHeight-80)+'px'
+}
+
+function addCtxItem(label,classOrFn,fn){
+  const isClass=typeof classOrFn==='string'
+  const cb=isClass?fn:classOrFn
+  const extra=isClass?classOrFn:''
+  const btn=document.createElement('button')
+  btn.textContent=label
+  if(extra)btn.classList.add(extra)
+  btn.addEventListener('click',()=>{ctxMenu.style.display='none';cb()})
+  ctxMenu.appendChild(btn)
+}
+
+document.addEventListener('click',()=>{ctxMenu.style.display='none'})
+document.addEventListener('contextmenu',e=>{if(!e.target.closest('.nb-btn')&&!e.target.closest('.pg-btn'))ctxMenu.style.display='none'})
+
+// ============================================================
+//  STATE MUTATIONS
+// ============================================================
+function selectNotebook(id){
+  const nb=state.notebooks.find(n=>n.id===id);if(!nb)return
+  state.activeNotebookId=id
+  state.activePageId=nb.pages[0].id
+  switchToPage()
+  renderSidebar();saveState()
+}
+
+function selectPage(id){
+  state.activePageId=id
+  switchToPage()
+  renderSidebar();saveState()
+}
+
+function switchToPage(){
+  const page=getActivePage();if(!page)return
+  const {w,h}=getCanvasSize(page.paperType)
+  canvas.width=w;canvas.height=h
+  initOffscreen(page)
+  renderCanvas()
+  updateUndoButtons()
+  setZoom(page.paperType==='whiteboard'?0.6:draw.zoom)
+}
+
+function addNotebook(name,coverColor){
+  const nb=createNotebook({name,coverColor})
+  state.notebooks.push(nb)
+  state.activeNotebookId=nb.id
+  state.activePageId=nb.pages[0].id
+  switchToPage();renderSidebar();saveState()
+}
+
+function deleteNotebook(id){
+  if(state.notebooks.length<=1){alert('Cannot delete the last notebook.');return}
+  state.notebooks=state.notebooks.filter(n=>n.id!==id)
+  if(state.activeNotebookId===id){
+    state.activeNotebookId=state.notebooks[0].id
+    state.activePageId=state.notebooks[0].pages[0].id
+    switchToPage()
+  }
+  renderSidebar();saveState()
+}
+
+function addPage(notebookId){
+  const nb=state.notebooks.find(n=>n.id===notebookId);if(!nb)return
+  const last=nb.pages[nb.pages.length-1]
+  const pg=createPage({
+    name:'Page '+(nb.pages.length+1),
+    paperType:last?.paperType||'lined',
+    paperColor:last?.paperColor||'white',
+    lineSpacing:last?.lineSpacing||32
+  })
+  nb.pages.push(pg)
+  state.activeNotebookId=notebookId
+  state.activePageId=pg.id
+  switchToPage();renderSidebar();saveState()
+}
+
+function deletePage(notebookId,pageId){
+  const nb=state.notebooks.find(n=>n.id===notebookId);if(!nb)return
+  if(nb.pages.length<=1){alert('Cannot delete the last page in a notebook.');return}
+  nb.pages=nb.pages.filter(p=>p.id!==pageId)
+  if(state.activePageId===pageId){
+    state.activePageId=nb.pages[0].id
+    switchToPage()
+  }
+  renderSidebar();saveState()
+}
+
+// ============================================================
+//  SIDEBAR TOGGLE
+// ============================================================
+let sidebarCollapsed=false
+document.getElementById('sidebar-toggle').addEventListener('click',()=>{
+  sidebarCollapsed=!sidebarCollapsed
+  document.getElementById('sidebar').classList.toggle('collapsed',sidebarCollapsed)
+  document.getElementById('sidebar-toggle').textContent=sidebarCollapsed?'▶':'◀'
+})
+
+// ============================================================
+//  KEYBOARD SHORTCUTS
+// ============================================================
+document.addEventListener('keydown',e=>{
+  const mod=e.metaKey||e.ctrlKey
+  if(mod&&e.key==='z'&&!e.shiftKey){e.preventDefault();undo();return}
+  if(mod&&(e.key==='Z'||(e.key==='z'&&e.shiftKey))){e.preventDefault();redo();return}
+  if(mod&&e.key==='0'){e.preventDefault();setZoom(1);return}
+  // Skip shortcuts if typing in an input
+  if(e.target.tagName==='INPUT')return
+  if(e.key==='p')setTool('pen')
+  if(e.key==='e')setTool('eraser')
+  if(e.key==='h')setTool('highlighter')
+  if(e.key==='='||e.key==='+')setZoom(Math.min(4,+(draw.zoom+.1).toFixed(2)))
+  if(e.key==='-')setZoom(Math.max(.25,+(draw.zoom-.1).toFixed(2)))
+})
+
+// Mouse wheel zoom
+document.getElementById('canvas-area').addEventListener('wheel',e=>{
+  if(e.metaKey||e.ctrlKey){
+    e.preventDefault()
+    const delta=e.deltaY<0?.05:-.05
+    setZoom(Math.max(.25,Math.min(4,+(draw.zoom+delta).toFixed(2))))
+  }
+},{passive:false})
+
+// ============================================================
+//  INIT
+// ============================================================
+function init(){
+  buildToolbar()
+  renderSidebar()
+  switchToPage()
+  // Set initial zoom for whiteboard
+  const page=getActivePage()
+  if(page?.paperType==='whiteboard')setZoom(0.6)
+}
+
+init()
+</script>
+</body>
+</html>
