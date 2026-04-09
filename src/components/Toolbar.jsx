@@ -1,36 +1,194 @@
 import { useState, useRef, useEffect } from 'react'
-import {
-  PenIcon, FountainPenIcon, BrushIcon, PencilIcon, HighlighterIcon, EraserIcon,
-  UndoIcon, RedoIcon, BackIcon, ExportIcon, SettingsIcon, ZoomInIcon, ZoomOutIcon,
-  SelectionIcon, TextIcon, ShapeToolIcon, WristGuardIcon, HandScrollIcon,
-  RectShapeIcon, CircleShapeIcon, LineShapeIcon,
-  ChevronLeftIcon, ChevronRightIcon,
-} from './ToolIcons'
 import ColorWheel from './ColorWheel'
 import styles from './Toolbar.module.css'
 
-const PRESET_SIZES = [2, 4, 8, 14, 24]
-const MAX_RECENT = 8
-
 const DRAW_TOOLS = [
-  { id: 'ballpoint',   label: 'Ballpoint',    Icon: PenIcon },
-  { id: 'fountain',    label: 'Fountain Pen', Icon: FountainPenIcon },
-  { id: 'brush',       label: 'Brush Pen',    Icon: BrushIcon },
-  { id: 'pencil',      label: 'Pencil',       Icon: PencilIcon },
-  { id: 'highlighter', label: 'Highlighter',  Icon: HighlighterIcon },
-  { id: 'eraser',      label: 'Eraser',       Icon: EraserIcon },
-  { id: 'select',      label: 'Select',       Icon: SelectionIcon },
-  { id: 'text',        label: 'Text',         Icon: TextIcon },
-  { id: 'shape',       label: 'Shape',        Icon: ShapeToolIcon },
-  { id: 'hand',        label: 'Scroll',       Icon: HandScrollIcon },
+  { id: 'ballpoint', label: 'Pen', icon: PenIcon },
+  { id: 'fountain',  label: 'Fountain', icon: FountainIcon },
+  { id: 'brush',     label: 'Brush', icon: BrushIcon },
+  { id: 'pencil',    label: 'Pencil', icon: PencilDrawIcon },
+  { id: 'highlighter', label: 'Highlighter', icon: HighlighterIcon },
+  { id: 'eraser',    label: 'Eraser', icon: EraserIcon },
+  { id: 'select',    label: 'Lasso', icon: LassoIcon },
+  { id: 'shape',     label: 'Shape', icon: ShapeIcon },
+  { id: 'text',      label: 'Text', icon: TextIcon },
+  { id: 'hand',      label: 'Hand', icon: HandIcon },
 ]
 
 const SHAPE_TYPES = [
-  { id: 'line',   label: 'Line',      Icon: LineShapeIcon },
-  { id: 'rect',   label: 'Rectangle', Icon: RectShapeIcon },
-  { id: 'circle', label: 'Circle',    Icon: CircleShapeIcon },
+  { id: 'line',   label: 'Line',   icon: LineIcon },
+  { id: 'rect',   label: 'Rect',   icon: RectIcon },
+  { id: 'circle', label: 'Circle', icon: CircleIcon },
 ]
 
+// ── SVG Icons ────────────────────────────────────────────────────────────────
+function PenIcon({ size = 22, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+function FountainIcon({ size = 22, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M12 19l-7-7 9-9 5 5-7 11z" stroke={color} strokeWidth="1.8" strokeLinejoin="round"/>
+      <path d="M5 12l2 2" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+      <circle cx="12" cy="20" r="1.5" fill={color}/>
+    </svg>
+  )
+}
+function BrushIcon({ size = 22, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M16 3l4 4-11 11H5v-4L16 3z" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M5 20c0-1.5 1-2.5 2.5-2.5" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  )
+}
+function PencilDrawIcon({ size = 22, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M15 5l4 4L7 21H3v-4L15 5z" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M13 7l4 4" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  )
+}
+function HighlighterIcon({ size = 22, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M9 3h6l4 8H5L9 3z" stroke={color} strokeWidth="1.8" strokeLinejoin="round"/>
+      <rect x="9" y="11" width="6" height="6" rx="0" stroke={color} strokeWidth="1.8"/>
+      <path d="M11 17v3m2-3v3" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  )
+}
+function EraserIcon({ size = 22, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M20 20H7L3 16l10-10 7 7-3 4" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M6.5 17.5l4-4" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  )
+}
+function LassoIcon({ size = 22, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M7 7c2-3 8-3 10 0s0 7-3 8c-1.5.5-3 .5-4 0" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M10 15l-5 5" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeDasharray="2 2"/>
+    </svg>
+  )
+}
+function ShapeIcon({ size = 22, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="10" width="8" height="8" rx="1" stroke={color} strokeWidth="1.8"/>
+      <circle cx="16" cy="8" r="4.5" stroke={color} strokeWidth="1.8"/>
+    </svg>
+  )
+}
+function TextIcon({ size = 22, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M4 6h16M12 6v13" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+      <path d="M8 19h8" stroke={color} strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  )
+}
+function HandIcon({ size = 22, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M8 13V7a1 1 0 0 1 2 0v4M10 7V5a1 1 0 0 1 2 0v6M12 6a1 1 0 0 1 2 0v5M14 7a1 1 0 0 1 2 0v6l-1 4H9l-3-3v-3l2-2" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+function UndoIcon({ size = 20, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M3 10h10a6 6 0 0 1 0 12H9" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M3 10l4-4M3 10l4 4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+function RedoIcon({ size = 20, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M21 10H11a6 6 0 0 0 0 12h4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M21 10l-4-4M21 10l-4 4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+function BackIcon({ size = 20, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M15 18l-6-6 6-6" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+function ZoomInIcon({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="10" cy="10" r="7" stroke={color} strokeWidth="1.8"/>
+      <path d="M21 21l-4.35-4.35M7 10h6M10 7v6" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  )
+}
+function ZoomOutIcon({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="10" cy="10" r="7" stroke={color} strokeWidth="1.8"/>
+      <path d="M21 21l-4.35-4.35M7 10h6" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    </svg>
+  )
+}
+function ExportIcon({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+function SettingsIcon({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="3" stroke={color} strokeWidth="1.8"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke={color} strokeWidth="1.8"/>
+    </svg>
+  )
+}
+function ChevronLeft({ size = 16, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      <path d="M10 12L6 8l4-4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+function ChevronRight({ size = 16, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 16 16" fill="none">
+      <path d="M6 12l4-4-4-4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+function WristIcon({ size = 18, color = 'currentColor' }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <rect x="7" y="2" width="10" height="20" rx="5" stroke={color} strokeWidth="1.8"/>
+      <path d="M7 8h10M7 16h10" stroke={color} strokeWidth="1.4" strokeOpacity="0.5"/>
+    </svg>
+  )
+}
+function LineIcon({ size = 18, color = 'currentColor' }) {
+  return <svg width={size} height={size} viewBox="0 0 18 18" fill="none"><path d="M3 15L15 3" stroke={color} strokeWidth="2" strokeLinecap="round"/></svg>
+}
+function RectIcon({ size = 18, color = 'currentColor' }) {
+  return <svg width={size} height={size} viewBox="0 0 18 18" fill="none"><rect x="2" y="4" width="14" height="10" rx="1.5" stroke={color} strokeWidth="1.8"/></svg>
+}
+function CircleIcon({ size = 18, color = 'currentColor' }) {
+  return <svg width={size} height={size} viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="6.5" stroke={color} strokeWidth="1.8"/></svg>
+}
+
+// ── Toolbar ──────────────────────────────────────────────────────────────────
 export default function Toolbar({
   penType, setPenType,
   shapeType, setShapeType,
@@ -39,359 +197,203 @@ export default function Toolbar({
   zoom, setZoom,
   onUndo, onRedo,
   canUndo, canRedo,
-  onExport,
-  onOpenPageSettings,
-  notebookName,
-  pageName,
+  onExport, onOpenPageSettings,
+  notebookName, pageName,
   onBack,
   onPrevPage, onNextPage,
   hasPrevPage, hasNextPage,
   pageIndex, pageTotal,
   wristGuard, onToggleWristGuard,
 }) {
-  const [showColorWheel, setShowColorWheel] = useState(false)
-  const [showToolOptions, setShowToolOptions] = useState(false)
-  const [eraserMode, setEraserMode] = useState('pixel')
-  const [recentColors, setRecentColors] = useState(['#000000'])
-  const colorSwatchRef = useRef(null)
-  const toolOptionsRef = useRef(null)
-  const colorWheelRef = useRef(null)
+  const [showColor, setShowColor] = useState(false)
+  const [showToolOpts, setShowToolOpts] = useState(false)
+  const [recentColors, setRecentColors] = useState(['#000000', '#FF3B30', '#007AFF', '#34C759'])
+  const colorBtnRef = useRef(null)
+  const colorPopRef = useRef(null)
+  const toolOptRef = useRef(null)
 
   useEffect(() => {
-    if (!showColorWheel && !showToolOptions) return
-    function handleClick(e) {
-      if (
-        colorSwatchRef.current?.contains(e.target) ||
-        colorWheelRef.current?.contains(e.target) ||
-        toolOptionsRef.current?.contains(e.target)
-      ) return
-      setShowColorWheel(false)
-      setShowToolOptions(false)
+    if (!showColor && !showToolOpts) return
+    function close(e) {
+      if (colorBtnRef.current?.contains(e.target) || colorPopRef.current?.contains(e.target)) return
+      if (toolOptRef.current?.contains(e.target)) return
+      setShowColor(false)
+      setShowToolOpts(false)
     }
-    document.addEventListener('pointerdown', handleClick, true)
-    return () => document.removeEventListener('pointerdown', handleClick, true)
-  }, [showColorWheel, showToolOptions])
+    document.addEventListener('pointerdown', close, true)
+    return () => document.removeEventListener('pointerdown', close, true)
+  }, [showColor, showToolOpts])
 
-  function handleColorChange(newColor) {
-    setColor(newColor)
-    setRecentColors(prev => {
-      const filtered = prev.filter(c => c.toLowerCase() !== newColor.toLowerCase())
-      return [newColor, ...filtered].slice(0, MAX_RECENT)
-    })
+  function handleColorChange(c) {
+    setColor(c)
+    setRecentColors(prev => [c, ...prev.filter(x => x.toLowerCase() !== c.toLowerCase())].slice(0, 8))
   }
 
   function handleToolClick(id) {
-    if (id === penType) {
-      setShowToolOptions(prev => !prev)
-      setShowColorWheel(false)
-    } else {
-      setPenType(id)
-      setShowToolOptions(false)
-    }
-  }
-
-  function handleColorSwatchClick() {
-    setShowColorWheel(prev => !prev)
-    setShowToolOptions(false)
+    if (id === penType) { setShowToolOpts(p => !p); setShowColor(false) }
+    else { setPenType(id); setShowToolOpts(false) }
   }
 
   const isEraser = penType === 'eraser'
-  const isHighlighter = penType === 'highlighter'
   const isSelect = penType === 'select'
-  const isShape = penType === 'shape'
   const isHand = penType === 'hand'
+  const isShape = penType === 'shape'
   const hideColor = isEraser || isSelect || isHand
-  const hideSizeControls = isSelect || isHand
 
   return (
-    <div className={styles.toolbarRoot}>
-      {/* ── Header bar ──────────────────────────────────────────────────────── */}
-      <div className={styles.headerBar}>
-        <div className={styles.headerLeft}>
-          <button className={styles.backBtn} onClick={onBack} title="Back to notebook">
-            <BackIcon size={20} color="var(--blue-primary)" />
-          </button>
-          <div className={styles.breadcrumb}>
-            <span className={styles.breadcrumbNotebook}>{notebookName}</span>
-            {pageName && (
-              <>
-                <span className={styles.breadcrumbSep}>/</span>
-                <span className={styles.breadcrumbPage}>{pageName}</span>
-              </>
-            )}
-          </div>
-        </div>
-
-        <div className={styles.headerCenter}>
-          <button
-            className={`${styles.navBtn} ${!hasPrevPage ? styles.navBtnDisabled : ''}`}
-            onClick={onPrevPage}
-            disabled={!hasPrevPage}
-            title="Previous page"
-          >
-            <ChevronLeftIcon size={16} color="currentColor" />
-          </button>
-          <span className={styles.pageCounter}>
-            {pageIndex != null ? `${pageIndex + 1} / ${pageTotal}` : ''}
-          </span>
-          <button
-            className={`${styles.navBtn} ${!hasNextPage ? styles.navBtnDisabled : ''}`}
-            onClick={onNextPage}
-            disabled={!hasNextPage}
-            title="Next page"
-          >
-            <ChevronRightIcon size={16} color="currentColor" />
+    <div className={styles.root}>
+      {/* ── Nav bar ── */}
+      <div className={styles.navBar}>
+        <div className={styles.navLeft}>
+          <button className={styles.backBtn} onClick={onBack}>
+            <BackIcon size={22} color="#FFFFFF" />
+            <span className={styles.backLabel}>{notebookName || 'Notebooks'}</span>
           </button>
         </div>
 
-        <div className={styles.headerRight}>
-          <button
-            className={`${styles.headerBtn} ${!canUndo ? styles.headerBtnDisabled : ''}`}
-            onClick={onUndo} disabled={!canUndo} title="Undo (⌘Z)"
-          >
-            <UndoIcon size={18} color="currentColor" />
+        <div className={styles.navCenter}>
+          <button className={`${styles.pageNavBtn} ${!hasPrevPage ? styles.pageNavBtnDim : ''}`} onClick={onPrevPage} disabled={!hasPrevPage}>
+            <ChevronLeft size={16} color="#FFFFFF" />
           </button>
-          <button
-            className={`${styles.headerBtn} ${!canRedo ? styles.headerBtnDisabled : ''}`}
-            onClick={onRedo} disabled={!canRedo} title="Redo (⌘⇧Z)"
-          >
-            <RedoIcon size={18} color="currentColor" />
+          <span className={styles.pageCounter}>{pageIndex != null ? `${pageIndex + 1} / ${pageTotal}` : ''}</span>
+          <button className={`${styles.pageNavBtn} ${!hasNextPage ? styles.pageNavBtnDim : ''}`} onClick={onNextPage} disabled={!hasNextPage}>
+            <ChevronRight size={16} color="#FFFFFF" />
           </button>
+        </div>
 
-          <div className={styles.headerDivider} />
-
-          <button
-            className={styles.headerBtn}
-            onClick={() => setZoom(z => Math.max(0.25, +(z - 0.1).toFixed(2)))}
-            title="Zoom out"
-          >
-            <ZoomOutIcon size={18} color="currentColor" />
+        <div className={styles.navRight}>
+          <button className={`${styles.navBtn} ${!canUndo ? styles.navBtnDim : ''}`} onClick={onUndo} disabled={!canUndo} title="Undo">
+            <UndoIcon size={19} color="#FFFFFF" />
+          </button>
+          <button className={`${styles.navBtn} ${!canRedo ? styles.navBtnDim : ''}`} onClick={onRedo} disabled={!canRedo} title="Redo">
+            <RedoIcon size={19} color="#FFFFFF" />
+          </button>
+          <div className={styles.navSep} />
+          <button className={`${styles.navBtn} ${wristGuard ? styles.navBtnActive : ''}`} onClick={onToggleWristGuard} title="Palm rejection">
+            <WristIcon size={18} color="#FFFFFF" />
+          </button>
+          <div className={styles.navSep} />
+          <button className={styles.navBtn} onClick={() => setZoom(z => Math.max(0.25, +(z - 0.1).toFixed(2)))} title="Zoom out">
+            <ZoomOutIcon size={18} color="#FFFFFF" />
           </button>
           <span className={styles.zoomLabel}>{Math.round(zoom * 100)}%</span>
-          <button
-            className={styles.headerBtn}
-            onClick={() => setZoom(z => Math.min(3, +(z + 0.1).toFixed(2)))}
-            title="Zoom in"
-          >
-            <ZoomInIcon size={18} color="currentColor" />
+          <button className={styles.navBtn} onClick={() => setZoom(z => Math.min(3, +(z + 0.1).toFixed(2)))} title="Zoom in">
+            <ZoomInIcon size={18} color="#FFFFFF" />
           </button>
-
-          <div className={styles.headerDivider} />
-
-          <button
-            className={`${styles.headerBtn} ${wristGuard ? styles.headerBtnActive : ''}`}
-            onClick={onToggleWristGuard}
-            title={wristGuard ? 'Wrist guard on' : 'Wrist guard off'}
-          >
-            <WristGuardIcon size={18} color="currentColor" />
+          <div className={styles.navSep} />
+          <button className={styles.navBtn} onClick={onExport} title="Export">
+            <ExportIcon size={18} color="#FFFFFF" />
           </button>
-
-          <div className={styles.headerDivider} />
-
-          <button className={styles.headerBtn} onClick={onExport} title="Export PNG">
-            <ExportIcon size={18} color="currentColor" />
-          </button>
-          <button className={styles.headerBtn} onClick={onOpenPageSettings} title="Page settings">
-            <SettingsIcon size={18} color="currentColor" />
+          <button className={styles.navBtn} onClick={onOpenPageSettings} title="Page settings">
+            <SettingsIcon size={18} color="#FFFFFF" />
           </button>
         </div>
       </div>
 
-      {/* ── Drawing tools bar ──────────────────────────────────────────────── */}
-      <div className={styles.toolsBar}>
+      {/* ── Tool palette ── */}
+      <div className={styles.palette}>
         {/* Tool buttons */}
-        <div className={styles.toolGroup}>
-          {DRAW_TOOLS.map(({ id, label, Icon }) => (
+        <div className={styles.toolRow}>
+          {DRAW_TOOLS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               className={`${styles.toolBtn} ${penType === id ? styles.toolBtnActive : ''}`}
               onClick={() => handleToolClick(id)}
               title={label}
             >
-              <Icon size={22} color={penType === id ? 'white' : 'var(--gray-700)'} />
+              <Icon size={22} color={penType === id ? '#FFFFFF' : 'var(--tool-color)'} />
+              <span className={styles.toolLabel}>{label}</span>
             </button>
           ))}
         </div>
 
-        <div className={styles.toolsDivider} />
+        {/* Divider */}
+        <div className={styles.paletteDivider} />
 
-        {/* Shape sub-type selector */}
+        {/* Shape sub-types */}
         {isShape && (
           <>
-            <div className={styles.shapeGroup}>
-              {SHAPE_TYPES.map(({ id, label, Icon }) => (
+            <div className={styles.shapeRow}>
+              {SHAPE_TYPES.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
                   className={`${styles.shapeBtn} ${shapeType === id ? styles.shapeBtnActive : ''}`}
                   onClick={() => setShapeType(id)}
                   title={label}
                 >
-                  <Icon size={18} color={shapeType === id ? 'white' : 'var(--gray-600)'} />
+                  <Icon size={18} color={shapeType === id ? '#FFFFFF' : 'var(--tool-color)'} />
                 </button>
               ))}
             </div>
-            <div className={styles.toolsDivider} />
+            <div className={styles.paletteDivider} />
           </>
         )}
 
-        {/* Color swatch */}
+        {/* Color + size */}
         {!hideColor && (
           <>
-            <div className={styles.colorSection}>
-              <button
-                ref={colorSwatchRef}
-                className={`${styles.colorSwatch} ${showColorWheel ? styles.colorSwatchOpen : ''}`}
-                style={{
-                  background: color,
-                  border: color === '#ffffff' || color === '#FFFFFF'
-                    ? '2px solid var(--gray-300)'
-                    : '2px solid transparent',
-                }}
-                onClick={handleColorSwatchClick}
-                title="Color picker"
-              />
-              <div
-                className={styles.sizeIndicator}
-                style={{
-                  width: Math.max(4, Math.min(size * 0.9, 24)),
-                  height: Math.max(4, Math.min(size * 0.9, 24)),
-                  background: color,
-                  border: (color === '#ffffff' || color === '#FFFFFF')
-                    ? '1px solid var(--gray-400)' : undefined,
-                }}
-              />
-            </div>
-            <div className={styles.toolsDivider} />
-          </>
-        )}
+            {/* Color swatch */}
+            <button
+              ref={colorBtnRef}
+              className={`${styles.colorSwatch} ${showColor ? styles.colorSwatchOpen : ''}`}
+              style={{ background: color, boxShadow: color === '#ffffff' || color === '#FFFFFF' ? 'inset 0 0 0 1.5px #ccc' : 'none' }}
+              onClick={() => { setShowColor(p => !p); setShowToolOpts(false) }}
+              title="Color"
+            />
 
-        {/* Size presets + inline slider */}
-        {!hideSizeControls && (
-          <>
-            <div className={styles.sizeGroup}>
-              {PRESET_SIZES.map(s => (
+            {/* Recent colors */}
+            <div className={styles.recentColors}>
+              {recentColors.slice(0, 5).map(c => (
                 <button
-                  key={s}
-                  className={`${styles.sizeDotBtn} ${size === s ? styles.sizeDotBtnActive : ''}`}
-                  onClick={() => setSize(s)}
-                  title={`${s}px`}
-                >
-                  <span
-                    className={styles.sizeDot}
-                    style={{
-                      width: Math.min(s * 1.1, 22),
-                      height: Math.min(s * 1.1, 22),
-                      background: isEraser ? 'var(--gray-400)' : (hideColor ? 'var(--gray-500)' : color),
-                    }}
-                  />
-                </button>
+                  key={c}
+                  className={`${styles.recentDot} ${color === c ? styles.recentDotActive : ''}`}
+                  style={{ background: c, boxShadow: c === '#ffffff' || c === '#FFFFFF' ? 'inset 0 0 0 1px #ccc' : 'none' }}
+                  onClick={() => handleColorChange(c)}
+                />
               ))}
             </div>
 
-            <div className={styles.toolsDivider} />
+            <div className={styles.paletteDivider} />
 
-            {/* Inline size slider — always visible */}
-            <div className={styles.inlineSliderGroup}>
-              <span className={styles.inlineSliderLabel}>Size</span>
+            {/* Size slider */}
+            <div className={styles.sizeControl}>
+              <div className={styles.sizePreview} style={{ width: Math.max(4, Math.min(size * 1.2, 26)), height: Math.max(4, Math.min(size * 1.2, 26)), background: penType === 'highlighter' ? color + '99' : color, borderRadius: '50%' }} />
               <input
-                type="range"
-                min={1}
-                max={50}
-                value={size}
+                type="range" min={1} max={50} value={size}
                 onChange={e => setSize(Number(e.target.value))}
-                className={styles.inlineSizeSlider}
+                className={styles.sizeSlider}
               />
-              <span className={styles.inlineSizeVal}>{size}px</span>
+              <span className={styles.sizeVal}>{size}</span>
             </div>
           </>
+        )}
+
+        {/* Eraser size when eraser active */}
+        {isEraser && (
+          <div className={styles.sizeControl}>
+            <div className={styles.sizePreview} style={{ width: Math.max(6, Math.min(size * 1.2, 26)), height: Math.max(6, Math.min(size * 1.2, 26)), background: '#aaa', borderRadius: '50%' }} />
+            <input type="range" min={1} max={80} value={size} onChange={e => setSize(Number(e.target.value))} className={styles.sizeSlider} />
+            <span className={styles.sizeVal}>{size}</span>
+          </div>
         )}
       </div>
 
-      {/* ── Color Wheel popup ──────────────────────────────────────────────── */}
-      {showColorWheel && (
-        <div ref={colorWheelRef} className={styles.colorWheelPopup}>
-          <ColorWheel
-            color={color}
-            onChange={handleColorChange}
-            onClose={() => setShowColorWheel(false)}
-            recentColors={recentColors}
-          />
+      {/* ── Color wheel popup ── */}
+      {showColor && (
+        <div ref={colorPopRef} className={styles.colorPop}>
+          <ColorWheel color={color} onChange={handleColorChange} onClose={() => setShowColor(false)} recentColors={recentColors} />
         </div>
       )}
 
-      {/* ── Tool Options panel ─────────────────────────────────────────────── */}
-      {showToolOptions && (
-        <div ref={toolOptionsRef} className={styles.toolOptionsPanel}>
-          <div className={styles.optionsHeader}>
-            <span className={styles.optionsTitle}>
-              {DRAW_TOOLS.find(t => t.id === penType)?.label ?? 'Tool'} Options
-            </span>
-          </div>
-
-          {!hideSizeControls && (
-            <>
-              <div className={styles.optionRow}>
-                <span className={styles.optionLabel}>Size</span>
-                <div className={styles.sliderRow}>
-                  <input
-                    type="range" min={1} max={50} value={size}
-                    onChange={e => setSize(Number(e.target.value))}
-                    className={styles.sizeSlider}
-                  />
-                  <span className={styles.sizeValue}>{size}px</span>
-                </div>
-              </div>
-
-              <div className={styles.optionRow}>
-                <span className={styles.optionLabel}>Presets</span>
-                <div className={styles.presetSizes}>
-                  {PRESET_SIZES.map(s => (
-                    <button
-                      key={s}
-                      className={`${styles.presetSizeBtn} ${size === s ? styles.presetSizeBtnActive : ''}`}
-                      onClick={() => setSize(s)}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          {!isEraser && !hideSizeControls && (
-            <div className={styles.optionRow}>
-              <span className={styles.optionLabel}>Opacity</span>
-              <div className={styles.sliderRow}>
-                <input
-                  type="range" min={10} max={100}
-                  value={isHighlighter ? 35 : 100}
-                  disabled={isHighlighter}
-                  className={styles.sizeSlider}
-                  readOnly
-                />
-                <span className={styles.sizeValue}>{isHighlighter ? '35%' : '100%'}</span>
-              </div>
-            </div>
-          )}
-
-          {isEraser && (
-            <div className={styles.optionRow}>
-              <span className={styles.optionLabel}>Eraser Mode</span>
-              <div className={styles.eraserModeRow}>
-                <button
-                  className={`${styles.eraserModeBtn} ${eraserMode === 'pixel' ? styles.eraserModeBtnActive : ''}`}
-                  onClick={() => setEraserMode('pixel')}
-                >
-                  Pixel
-                </button>
-                <button
-                  className={`${styles.eraserModeBtn} ${eraserMode === 'stroke' ? styles.eraserModeBtnActive : ''}`}
-                  onClick={() => setEraserMode('stroke')}
-                >
-                  Stroke
-                </button>
-              </div>
+      {/* ── Tool options popup ── */}
+      {showToolOpts && (
+        <div ref={toolOptRef} className={styles.toolOptsPop}>
+          <div className={styles.toolOptsTitle}>{DRAW_TOOLS.find(t => t.id === penType)?.label}</div>
+          {!isSelect && !isHand && (
+            <div className={styles.optRow}>
+              <span className={styles.optLabel}>Size</span>
+              <input type="range" min={1} max={50} value={size} onChange={e => setSize(Number(e.target.value))} className={styles.optSlider} />
+              <span className={styles.optVal}>{size}px</span>
             </div>
           )}
         </div>

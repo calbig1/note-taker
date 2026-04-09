@@ -3,84 +3,82 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--gray-50);
+  background: var(--bg-primary, #F2F2F7);
   overflow: hidden;
 }
 
-/* ── Top bar ──────────────────────────────────────────────────────────────── */
+/* ── Top bar ── */
 .topBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  height: 60px;
-  background: var(--white);
-  border-bottom: 1px solid var(--gray-200);
+  background: #1C1C1E;
+  height: 52px;
+  padding: 0 12px;
   flex-shrink: 0;
-  box-shadow: var(--shadow);
-}
-
-.topBarLeft {
-  display: flex;
-  align-items: center;
-  gap: 12px;
 }
 
 .backBtn {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: var(--blue-lighter);
-  transition: background var(--transition);
-  flex-shrink: 0;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.backBtn:hover { background: rgba(255,255,255,0.1); }
+
+.backLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: #FFFFFF;
 }
 
-.backBtn:hover {
-  background: var(--blue-light);
-}
-
-.notebookInfo {
+.topBarCenter {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  align-items: center;
+  gap: 1px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .notebookName {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--gray-900);
-  line-height: 1.2;
+  color: #FFFFFF;
+  max-width: 240px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .pageCount {
-  font-size: 12px;
-  color: var(--gray-500);
-  line-height: 1.2;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
 }
 
 .addPageBtn {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--blue-primary);
+  background: #007AFF;
   color: white;
   font-size: 13px;
   font-weight: 600;
-  padding: 8px 16px;
-  border-radius: var(--radius-md);
-  transition: background var(--transition), transform var(--transition);
-  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+.addPageBtn:hover { background: #0056CC; }
 
-.addPageBtn:hover {
-  background: var(--blue-dark);
-  transform: translateY(-1px);
-}
-
-/* ── Content ──────────────────────────────────────────────────────────────── */
+/* ── Content ── */
 .content {
   flex: 1;
   overflow-y: auto;
@@ -93,57 +91,39 @@
   gap: 20px;
 }
 
-/* ── Page Card ────────────────────────────────────────────────────────────── */
+/* ── Page Card ── */
 .pageCard {
   position: relative;
   display: flex;
   flex-direction: column;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   overflow: visible;
-  background: var(--white);
-  box-shadow: var(--shadow-md);
+  background: white;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
   cursor: pointer;
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-
 .pageCard:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
-}
-
-.pageCard:active {
-  transform: translateY(0);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.15);
 }
 
 .thumbWrapper {
   position: relative;
   width: 100%;
   overflow: hidden;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-  background: var(--gray-100);
+  border-radius: 12px 12px 0 0;
+  background: #F2F2F7;
 }
 
 .thumbCanvas {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border-radius: 12px 12px 0 0;
 }
 
-.thumbOverlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.06));
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
-  opacity: 0;
-  transition: opacity var(--transition);
-}
-
-.pageCard:hover .thumbOverlay {
-  opacity: 1;
-}
-
-.pageNumber {
+.pageNumBadge {
   position: absolute;
   top: 7px;
   left: 8px;
@@ -153,60 +133,60 @@
   font-weight: 700;
   padding: 2px 6px;
   border-radius: 20px;
+  backdrop-filter: blur(4px);
 }
 
-/* ── Page Footer ──────────────────────────────────────────────────────────── */
+/* ── Page Footer ── */
 .pageFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 8px 10px;
-  border-top: 1px solid var(--gray-100);
+  border-top: 0.5px solid rgba(0,0,0,0.08);
   gap: 6px;
 }
 
 .pageName {
   font-size: 12px;
   font-weight: 600;
-  color: var(--gray-700);
+  color: var(--text-primary, #1C1C1E);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
   display: block;
+  cursor: default;
 }
 
 .menuBtn {
   width: 24px;
   height: 24px;
   border-radius: 5px;
+  border: none;
+  background: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity var(--transition), background var(--transition);
+  transition: opacity 0.15s, background 0.15s;
   flex-shrink: 0;
 }
+.pageCard:hover .menuBtn { opacity: 1; }
+.menuBtn:hover { background: rgba(0,0,0,0.07); }
 
-.pageCard:hover .menuBtn {
-  opacity: 1;
-}
-
-.menuBtn:hover {
-  background: var(--gray-100);
-}
-
-/* ── Context menu ─────────────────────────────────────────────────────────── */
+/* ── Context Menu ── */
 .contextMenu {
   position: absolute;
   bottom: calc(100% + 4px);
   right: 0;
-  background: var(--white);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg), 0 0 0 1px var(--gray-200);
-  padding: 4px;
-  z-index: 50;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15), 0 0 0 0.5px rgba(0,0,0,0.06);
+  overflow: hidden;
+  z-index: 100;
   min-width: 150px;
+  animation: fadeIn 0.12s ease;
 }
 
 .menuItem {
@@ -214,76 +194,106 @@
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  font-size: 13px;
-  color: var(--gray-700);
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary, #1C1C1E);
+  cursor: pointer;
   text-align: left;
-  transition: background var(--transition);
+  transition: background 0.1s;
 }
-
-.menuItem:hover {
-  background: var(--gray-50);
-}
-
-.menuItemDanger {
-  color: #DC2626;
-}
-
-.menuItemDanger:hover {
-  background: #FEF2F2;
-}
+.menuItem:hover { background: #F2F2F7; }
+.menuItemDanger { color: #FF3B30; }
 
 .menuDivider {
-  height: 1px;
-  background: var(--gray-100);
-  margin: 3px 4px;
+  height: 0.5px;
+  background: rgba(0,0,0,0.1);
+  margin: 0;
 }
 
-/* ── Rename input ─────────────────────────────────────────────────────────── */
+/* ── Rename input ── */
 .renameInput {
   flex: 1;
   font-size: 12px;
   font-weight: 600;
-  color: var(--gray-900);
+  color: var(--text-primary, #1C1C1E);
   border: none;
-  border-bottom: 1.5px solid var(--blue-primary);
+  border-bottom: 1.5px solid #007AFF;
   background: transparent;
   outline: none;
   padding: 0;
   min-width: 0;
 }
 
-/* ── Empty state ──────────────────────────────────────────────────────────── */
-.emptyState {
+/* ── Add card ── */
+.addCard {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  border: 2px dashed #D1D1D6;
+  border-radius: 12px;
+  min-height: 220px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.addCard:hover { border-color: #007AFF; background: rgba(0,122,255,0.04); }
+
+.addCardIcon {
+  width: 48px;
+  height: 48px;
+  background: #E5E5EA;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.addCard:hover .addCardIcon { background: rgba(0,122,255,0.12); }
+
+.addCardLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #636366;
+}
+.addCard:hover .addCardLabel { color: #007AFF; }
+
+/* ── Empty ── */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 12px;
-  padding-top: 60px;
-  text-align: center;
+  height: 60%;
 }
 
 .emptyTitle {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--gray-700);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary, #1C1C1E);
 }
 
-.emptyBtn {
+.emptyAddBtn {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--blue-primary);
+  background: #007AFF;
   color: white;
   font-size: 13px;
   font-weight: 600;
   padding: 9px 18px;
-  border-radius: var(--radius-md);
-  margin-top: 4px;
-  transition: background var(--transition);
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
 }
+.emptyAddBtn:hover { background: #0056CC; }
 
-.emptyBtn:hover {
-  background: var(--blue-dark);
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

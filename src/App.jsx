@@ -11,10 +11,44 @@ import styles from './App.module.css'
 
 const MAX_HISTORY = 60
 
+// ── Splash / Loading Screen ─────────────────────────────────────────────────
+function SplashScreen({ onDone }) {
+  const [hiding, setHiding] = useState(false)
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setHiding(true), 1600)
+    const t2 = setTimeout(() => onDone(), 2100)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [onDone])
+
+  return (
+    <div className={`${styles.splash} ${hiding ? styles.splashHide : ''}`}>
+      <div className={styles.splashContent}>
+        <div className={styles.splashLogoWrap}>
+          {/* Notebook icon */}
+          <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
+            <rect x="14" y="8" width="44" height="56" rx="6" fill="#FFFFFF" fillOpacity="0.15"/>
+            <rect x="18" y="8" width="40" height="56" rx="6" fill="#FFFFFF"/>
+            <rect x="14" y="8" width="8" height="56" rx="4" fill="#FFFFFF" fillOpacity="0.4"/>
+            <rect x="26" y="22" width="22" height="2.5" rx="1.25" fill="#007AFF" fillOpacity="0.5"/>
+            <rect x="26" y="30" width="18" height="2.5" rx="1.25" fill="#007AFF" fillOpacity="0.4"/>
+            <rect x="26" y="38" width="20" height="2.5" rx="1.25" fill="#007AFF" fillOpacity="0.3"/>
+            <rect x="26" y="46" width="14" height="2.5" rx="1.25" fill="#007AFF" fillOpacity="0.2"/>
+          </svg>
+        </div>
+        <h1 className={styles.splashTitle}>Note Taker</h1>
+        <p className={styles.splashSub}>Your digital notebook</p>
+        <div className={styles.splashSpinner} />
+      </div>
+    </div>
+  )
+}
+
+// ── Main App ────────────────────────────────────────────────────────────────
 export default function App() {
+  const [loading, setLoading] = useState(true)
   const [state, setState] = useState(() => loadState() ?? getInitialState())
   const [view, setView] = useState('home')
-
   const [penType, setPenType] = useState('ballpoint')
   const [shapeType, setShapeType] = useState('rect')
   const [color, setColor] = useState('#000000')
@@ -277,76 +311,74 @@ export default function App() {
 
   const history = activePage ? getHistory(activePage.id) : { past: [], future: [] }
 
+  if (loading) {
+    return <SplashScreen onDone={() => setLoading(false)} />
+  }
+
   if (view === 'home') {
     return (
-      <div className={styles.app}>
-        <HomeScreen
-          notebooks={state.notebooks}
-          onOpenNotebook={handleOpenNotebook}
-          onAddNotebook={handleAddNotebook}
-          onRenameNotebook={handleRenameNotebook}
-          onDeleteNotebook={handleDeleteNotebook}
-        />
-      </div>
+      <HomeScreen
+        notebooks={state.notebooks}
+        onOpenNotebook={handleOpenNotebook}
+        onAddNotebook={handleAddNotebook}
+        onRenameNotebook={handleRenameNotebook}
+        onDeleteNotebook={handleDeleteNotebook}
+      />
     )
   }
 
   if (view === 'notebook') {
     return (
-      <div className={styles.app}>
-        <NotebookView
-          notebook={activeNotebook}
-          onBack={() => setView('home')}
-          onOpenPage={handleOpenPage}
-          onAddPage={handleAddPageAndOpen}
-          onRenamePage={handleRenamePage}
-          onDeletePage={handleDeletePage}
-          onDuplicatePage={handleDuplicatePage}
-        />
-      </div>
+      <NotebookView
+        notebook={activeNotebook}
+        onBack={() => setView('home')}
+        onOpenPage={handleOpenPage}
+        onAddPage={handleAddPageAndOpen}
+        onRenamePage={handleRenamePage}
+        onDeletePage={handleDeletePage}
+        onDuplicatePage={handleDuplicatePage}
+      />
     )
   }
 
   return (
-    <div className={styles.app}>
-      <div className={styles.editorLayout}>
-        <Toolbar
-          penType={penType} setPenType={setPenType}
-          shapeType={shapeType} setShapeType={setShapeType}
-          color={color} setColor={setColor}
-          size={size} setSize={setSize}
-          zoom={zoom} setZoom={setZoom}
-          onUndo={handleUndo} onRedo={handleRedo}
-          canUndo={history.past.length > 0} canRedo={history.future.length > 0}
-          onExport={handleExport}
-          onOpenPageSettings={() => setShowPageSettings(true)}
-          notebookName={activeNotebook?.name ?? ''}
-          pageName={activePage?.name ?? ''}
-          onBack={() => setView('notebook')}
-          onPrevPage={handlePrevPage} onNextPage={handleNextPage}
-          hasPrevPage={hasPrevPage} hasNextPage={hasNextPage}
-          pageIndex={activePageIndex} pageTotal={activeNotebook?.pages.length ?? 0}
-          wristGuard={wristGuard} onToggleWristGuard={() => setWristGuard(w => !w)}
-        />
+    <div className={styles.editor}>
+      <Toolbar
+        penType={penType} setPenType={setPenType}
+        shapeType={shapeType} setShapeType={setShapeType}
+        color={color} setColor={setColor}
+        size={size} setSize={setSize}
+        zoom={zoom} setZoom={setZoom}
+        onUndo={handleUndo} onRedo={handleRedo}
+        canUndo={history.past.length > 0} canRedo={history.future.length > 0}
+        onExport={handleExport}
+        onOpenPageSettings={() => setShowPageSettings(true)}
+        notebookName={activeNotebook?.name ?? ''}
+        pageName={activePage?.name ?? ''}
+        onBack={() => setView('notebook')}
+        onPrevPage={handlePrevPage} onNextPage={handleNextPage}
+        hasPrevPage={hasPrevPage} hasNextPage={hasNextPage}
+        pageIndex={activePageIndex} pageTotal={activeNotebook?.pages.length ?? 0}
+        wristGuard={wristGuard} onToggleWristGuard={() => setWristGuard(w => !w)}
+      />
 
-        <div className={styles.canvasScroll}>
-          {activePage ? (
-            <Canvas
-              ref={canvasRef}
-              page={activePage}
-              penType={penType}
-              shapeType={shapeType}
-              color={color}
-              size={size}
-              zoom={zoom}
-              onStrokesChange={handleStrokesChange}
-              onTextElementsChange={handleTextElementsChange}
-              wristGuard={wristGuard}
-            />
-          ) : (
-            <div className={styles.empty}>No page selected</div>
-          )}
-        </div>
+      <div className={styles.canvasArea}>
+        {activePage ? (
+          <Canvas
+            ref={canvasRef}
+            page={activePage}
+            penType={penType}
+            shapeType={shapeType}
+            color={color}
+            size={size}
+            zoom={zoom}
+            onStrokesChange={handleStrokesChange}
+            onTextElementsChange={handleTextElementsChange}
+            wristGuard={wristGuard}
+          />
+        ) : (
+          <div className={styles.empty}>No page selected</div>
+        )}
       </div>
 
       {showPageSettings && activePage && (

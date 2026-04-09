@@ -1,85 +1,78 @@
-/* =========================================================
-   Global CSS Variables — Blue & White Theme
-   ========================================================= */
-:root {
-  --blue-primary: #2563EB;
-  --blue-dark: #1E40AF;
-  --blue-medium: #3B82F6;
-  --blue-light: #DBEAFE;
-  --blue-lighter: #EFF6FF;
-  --white: #FFFFFF;
-  --gray-50: #F8FAFC;
-  --gray-100: #F1F5F9;
-  --gray-200: #E2E8F0;
-  --gray-300: #CBD5E1;
-  --gray-500: #64748B;
-  --gray-600: #475569;
-  --gray-700: #334155;
-  --gray-900: #0F172A;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --transition: 150ms ease;
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+:root {
+  --bg-primary: #F2F2F7;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #E5E5EA;
+  --bg-sidebar: #1C1C1E;
+  --bg-sidebar-hover: #2C2C2E;
+  --bg-sidebar-active: #3A3A3C;
+
+  --nav-bar: #1C1C1E;
+  --nav-bar-border: #3A3A3C;
+
+  --toolbar-bg: #FFFFFF;
+  --toolbar-border: #E0E0E0;
+  --toolbar-shadow: 0 1px 3px rgba(0,0,0,0.08);
+
+  --tool-active-bg: #007AFF;
+  --tool-hover-bg: #F0F0F5;
+  --tool-color: #3A3A3C;
+
+  --blue: #007AFF;
+  --blue-dark: #0056CC;
+  --red: #FF3B30;
+  --green: #34C759;
+
+  --text-primary: #1C1C1E;
+  --text-secondary: #6E6E73;
+  --text-tertiary: #AEAEB2;
+  --text-on-dark: #FFFFFF;
+  --text-on-dark-secondary: rgba(255,255,255,0.55);
+
+  --separator: rgba(60,60,67,0.12);
+  --separator-dark: rgba(255,255,255,0.12);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
 }
 
 html, body, #root {
   height: 100%;
   width: 100%;
   overflow: hidden;
-}
-
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--gray-900);
-  background: var(--gray-50);
+  font-family: var(--font);
+  background: var(--bg-primary);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 button {
-  font-family: inherit;
-  font-size: inherit;
+  font-family: var(--font);
   cursor: pointer;
   border: none;
   background: none;
-  color: inherit;
-  outline: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-button:focus-visible {
-  outline: 2px solid var(--blue-primary);
-  outline-offset: 2px;
-  border-radius: 4px;
-}
+input, textarea { font-family: var(--font); }
 
-input, textarea {
-  font-family: inherit;
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
 }
-
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--gray-300);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-500);
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
