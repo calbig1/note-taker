@@ -1,41 +1,52 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-primary: #F2F2F7;
-  --bg-secondary: #FFFFFF;
-  --bg-tertiary: #E5E5EA;
-  --bg-sidebar: #1C1C1E;
-  --bg-sidebar-hover: #2C2C2E;
-  --bg-sidebar-active: #3A3A3C;
+  /* ── Studio Dark Palette ── */
+  --bg-base:        #0C0C12;
+  --bg-surface:     #13131C;
+  --bg-card:        #1A1A26;
+  --bg-elevated:    #22222F;
+  --bg-overlay:     #2A2A3A;
 
-  --nav-bar: #1C1C1E;
-  --nav-bar-border: #3A3A3C;
+  --accent:         #7C6EF8;
+  --accent-dim:     rgba(124,110,248,0.18);
+  --accent-hover:   #6A5CE4;
+  --accent-glow:    rgba(124,110,248,0.35);
 
-  --toolbar-bg: #FFFFFF;
-  --toolbar-border: #E0E0E0;
-  --toolbar-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  --red:            #FF5C5C;
+  --red-dim:        rgba(255,92,92,0.15);
+  --green:          #3FD97B;
 
-  --tool-active-bg: #007AFF;
-  --tool-hover-bg: #F0F0F5;
-  --tool-color: #3A3A3C;
+  --text-primary:   #EDEEF5;
+  --text-secondary: #8A8AAC;
+  --text-tertiary:  #52527A;
+  --text-on-dark:   #FFFFFF;
 
-  --blue: #007AFF;
-  --blue-dark: #0056CC;
-  --red: #FF3B30;
-  --green: #34C759;
+  --separator:      rgba(255,255,255,0.06);
+  --border:         rgba(255,255,255,0.09);
 
-  --text-primary: #1C1C1E;
-  --text-secondary: #6E6E73;
-  --text-tertiary: #AEAEB2;
-  --text-on-dark: #FFFFFF;
-  --text-on-dark-secondary: rgba(255,255,255,0.55);
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  20px;
 
-  --separator: rgba(60,60,67,0.12);
-  --separator-dark: rgba(255,255,255,0.12);
-
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  /* Legacy compat */
+  --bg-primary:        var(--bg-base);
+  --bg-secondary:      var(--bg-surface);
+  --bg-tertiary:       var(--bg-elevated);
+  --bg-sidebar:        var(--bg-surface);
+  --blue:              var(--accent);
+  --blue-dark:         var(--accent-hover);
+  --text-on-dark-secondary: rgba(255,255,255,0.45);
+  --separator-dark:    var(--separator);
+  --nav-bar:           var(--bg-surface);
+  --nav-bar-border:    var(--border);
+  --toolbar-bg:        var(--bg-card);
+  --toolbar-border:    var(--border);
+  --toolbar-shadow:    0 2px 12px rgba(0,0,0,0.4);
+  --tool-active-bg:    var(--accent);
+  --tool-hover-bg:     var(--bg-elevated);
+  --tool-color:        var(--text-secondary);
 
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
 }
@@ -45,7 +56,7 @@ html, body, #root {
   width: 100%;
   overflow: hidden;
   font-family: var(--font);
-  background: var(--bg-primary);
+  background: var(--bg-base);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
 }
@@ -63,16 +74,8 @@ button {
 
 input, textarea { font-family: var(--font); }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.96); }
-  to   { opacity: 1; transform: scale(1); }
-}
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to   { opacity: 0; }
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+@keyframes fadeIn   { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes fadeOut  { from { opacity: 1; } to { opacity: 0; } }
+@keyframes spin     { to { transform: rotate(360deg); } }
+@keyframes slideUp  { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes popIn    { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }

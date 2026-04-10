@@ -1,4 +1,4 @@
-/* ── Root — only provides the nav bar in normal flow ── */
+/* ── Root ── */
 .root {
   display: flex;
   flex-direction: column;
@@ -13,49 +13,33 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #1C1C1E;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
   height: 48px;
   padding: 0 8px;
   flex-shrink: 0;
 }
 
-.navLeft {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-}
-
-.navCenter {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.navRight {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  flex: 1;
-  justify-content: flex-end;
-}
+.navLeft  { display: flex; align-items: center; flex: 1; min-width: 0; }
+.navCenter { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.navRight  { display: flex; align-items: center; gap: 2px; flex: 1; justify-content: flex-end; }
 
 .backBtn {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   padding: 6px 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   transition: background 0.15s;
   max-width: 200px;
+  color: var(--text-secondary);
 }
-.backBtn:hover { background: rgba(255,255,255,0.1); }
+.backBtn:hover { background: var(--bg-elevated); color: var(--text-primary); }
 
 .backLabel {
   font-size: 14px;
   font-weight: 500;
-  color: #FFFFFF;
+  color: inherit;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -65,14 +49,15 @@
   width: 28px;
   height: 28px;
   border-radius: 6px;
+  color: var(--text-secondary);
   transition: background 0.15s;
 }
-.pageNavBtn:hover { background: rgba(255,255,255,0.12); }
+.pageNavBtn:hover { background: var(--bg-elevated); }
 
 .pageCounter {
   font-size: 13px;
-  font-weight: 500;
-  color: rgba(255,255,255,0.85);
+  font-weight: 600;
+  color: var(--text-secondary);
   min-width: 42px;
   text-align: center;
 }
@@ -80,19 +65,20 @@
 .navBtn {
   width: 34px;
   height: 34px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   transition: background 0.15s;
   flex-shrink: 0;
+  color: var(--text-secondary);
 }
-.navBtn:hover { background: rgba(255,255,255,0.12); }
-.navBtnActive { background: rgba(255,255,255,0.2) !important; }
+.navBtn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+.navBtnActive { background: var(--bg-overlay) !important; color: var(--accent) !important; }
 
-.dim { opacity: 0.3; cursor: not-allowed; }
+.dim { opacity: 0.25; cursor: not-allowed; }
 
 .navSep {
   width: 1px;
-  height: 20px;
-  background: rgba(255,255,255,0.14);
+  height: 18px;
+  background: var(--border);
   margin: 0 3px;
   flex-shrink: 0;
 }
@@ -100,7 +86,7 @@
 .zoomLabel {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255,255,255,0.7);
+  color: var(--text-tertiary);
   min-width: 36px;
   text-align: center;
 }
@@ -111,19 +97,16 @@
   left: 12px;
   top: 60px;
   z-index: 200;
-  background: rgba(255, 255, 255, 0.97);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 16px;
-  box-shadow:
-    0 4px 24px rgba(0,0,0,0.14),
-    0 0 0 0.5px rgba(0,0,0,0.07);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.04);
   padding: 8px 6px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  min-width: 60px;
+  min-width: 62px;
 }
 
 /* ── Tool stack ── */
@@ -140,16 +123,17 @@
   align-items: center;
   justify-content: center;
   gap: 3px;
-  width: 50px;
+  width: 52px;
   height: 48px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   transition: background 0.12s;
-  color: #3C3C43;
+  color: var(--text-secondary);
 }
-.toolBtn:hover { background: rgba(0,0,0,0.05); }
+.toolBtn:hover { background: var(--bg-elevated); color: var(--text-primary); }
 .toolBtnActive {
-  background: #007AFF !important;
+  background: var(--accent) !important;
   color: #FFFFFF;
+  box-shadow: 0 2px 10px var(--accent-glow);
 }
 
 .toolLabel {
@@ -163,14 +147,14 @@
 
 /* ── Panel divider ── */
 .panelDivider {
-  width: 36px;
+  width: 38px;
   height: 1px;
-  background: rgba(0,0,0,0.09);
+  background: var(--separator);
   margin: 4px 0;
   flex-shrink: 0;
 }
 
-/* ── Shape sub-type row ── */
+/* ── Shape row ── */
 .shapeRow {
   display: flex;
   flex-direction: column;
@@ -179,27 +163,28 @@
 }
 
 .shapeBtn {
-  width: 34px;
+  width: 36px;
   height: 30px;
-  border-radius: 8px;
+  border-radius: 7px;
   transition: background 0.12s;
+  color: var(--text-secondary);
 }
-.shapeBtn:hover { background: rgba(0,0,0,0.06); }
-.shapeBtnActive { background: #007AFF !important; }
+.shapeBtn:hover { background: var(--bg-elevated); color: var(--text-primary); }
+.shapeBtnActive { background: var(--accent) !important; color: white; box-shadow: 0 2px 8px var(--accent-glow); }
 
 /* ── Color swatch ── */
 .colorSwatch {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  flex-shrink: 0;
-  border: 2px solid rgba(0,0,0,0.08);
+  border: 2px solid rgba(255,255,255,0.12);
   transition: transform 0.15s;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .colorSwatch:hover { transform: scale(1.1); }
 .colorSwatchOpen {
-  box-shadow: 0 0 0 2.5px #007AFF !important;
+  box-shadow: 0 0 0 2.5px var(--accent) !important;
   transform: scale(1.1);
 }
 
@@ -216,14 +201,14 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  flex-shrink: 0;
-  border: 1.5px solid rgba(0,0,0,0.06);
+  border: 1.5px solid rgba(255,255,255,0.1);
   transition: transform 0.12s;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .recentDot:hover { transform: scale(1.15); }
 .recentDotActive {
-  box-shadow: 0 0 0 2px #007AFF;
+  box-shadow: 0 0 0 2px var(--accent);
   transform: scale(1.1);
 }
 
@@ -251,7 +236,7 @@
   width: 4px;
   height: 72px;
   border-radius: 2px;
-  background: #D1D1D6;
+  background: var(--bg-elevated);
   outline: none;
   cursor: pointer;
 }
@@ -260,24 +245,24 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #007AFF;
+  background: var(--accent);
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 6px var(--accent-glow);
 }
 
 .sizeVal {
   font-size: 10px;
   font-weight: 700;
-  color: #636366;
+  color: var(--text-tertiary);
 }
 
 /* ── Color wheel popup ── */
 .colorPop {
   position: fixed;
   top: 60px;
-  left: 80px;
+  left: 82px;
   z-index: 500;
-  filter: drop-shadow(0 8px 32px rgba(0,0,0,0.22));
+  filter: drop-shadow(0 8px 32px rgba(0,0,0,0.6));
   animation: popIn 0.15s ease;
 }
 
