@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react'
 import { drawPaper } from '../utils/drawPaper'
 import { renderAllStrokes, renderTextElements } from '../utils/drawStrokes'
 import styles from './NotebookView.module.css'
+import { BackIcon, PlusIcon, DotsIcon, TrashIcon, PageIcon } from './ToolIcons'
 
 const THUMB_W = 180
 const THUMB_H = 240
@@ -11,38 +12,7 @@ function getOrigSize(page) {
   return { w: 850, h: 1100 }
 }
 
-// ── Icons ──────────────────────────────────────────────────────────────────────
-function BackIcon({ size = 20, color = 'currentColor' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <path d="M15 18l-6-6 6-6" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
-function PlusIcon({ size = 16, color = 'currentColor' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
-      <path d="M10 4v12M4 10h12" stroke={color} strokeWidth="2" strokeLinecap="round"/>
-    </svg>
-  )
-}
-function DotsIcon({ size = 14, color = 'currentColor' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="4" r="1.5" fill={color}/>
-      <circle cx="10" cy="10" r="1.5" fill={color}/>
-      <circle cx="10" cy="16" r="1.5" fill={color}/>
-    </svg>
-  )
-}
-function TrashIcon({ size = 13, color = 'currentColor' }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
-      <path d="M3 5h14M8 5V3h4v2M6 5l1 12h6l1-12" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  )
-}
-function CopyIcon({ size = 13, color = 'currentColor' }) {
+function CopyIcon({ size = 14, color = 'currentColor' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
       <rect x="7" y="7" width="10" height="10" rx="2" stroke={color} strokeWidth="1.6"/>
@@ -50,7 +20,8 @@ function CopyIcon({ size = 13, color = 'currentColor' }) {
     </svg>
   )
 }
-function PencilIcon({ size = 13, color = 'currentColor' }) {
+
+function PencilEditIcon({ size = 14, color = 'currentColor' }) {
   return (
     <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
       <path d="M13.5 3.5l3 3L7 16H4v-3L13.5 3.5z" stroke={color} strokeWidth="1.6" strokeLinejoin="round"/>
@@ -58,7 +29,7 @@ function PencilIcon({ size = 13, color = 'currentColor' }) {
   )
 }
 
-// ── Page Thumbnail ─────────────────────────────────────────────────────────────
+// ── Page Thumbnail ─────────────────────────────────────────────────────────
 function PageThumbnail({ page }) {
   const canvasRef = useRef(null)
   const { w: ORIG_W, h: ORIG_H } = getOrigSize(page)
@@ -87,7 +58,7 @@ function PageThumbnail({ page }) {
   )
 }
 
-// ── Page Card ──────────────────────────────────────────────────────────────────
+// ── Page Card ──────────────────────────────────────────────────────────────
 function PageCard({ page, notebookId, index, onClick, onRename, onDelete, onDuplicate }) {
   const [showMenu, setShowMenu] = useState(false)
   const [renaming, setRenaming] = useState(false)
@@ -126,12 +97,18 @@ function PageCard({ page, notebookId, index, onClick, onRename, onDelete, onDupl
             value={renameValue}
             onChange={e => setRenameValue(e.target.value)}
             onBlur={commitRename}
-            onKeyDown={e => { if (e.key === 'Enter') commitRename(); if (e.key === 'Escape') setRenaming(false) }}
+            onKeyDown={e => {
+              if (e.key === 'Enter') commitRename()
+              if (e.key === 'Escape') setRenaming(false)
+            }}
             onClick={e => e.stopPropagation()}
             maxLength={60}
           />
         ) : (
-          <span className={styles.pageName} onDoubleClick={e => { e.stopPropagation(); setRenameValue(page.name); setRenaming(true) }}>
+          <span
+            className={styles.pageName}
+            onDoubleClick={e => { e.stopPropagation(); setRenameValue(page.name); setRenaming(true) }}
+          >
             {page.name}
           </span>
         )}
@@ -140,20 +117,29 @@ function PageCard({ page, notebookId, index, onClick, onRename, onDelete, onDupl
           className={styles.menuBtn}
           onClick={e => { e.stopPropagation(); setShowMenu(p => !p) }}
         >
-          <DotsIcon size={14} color="var(--text-secondary, #636366)" />
+          <DotsIcon size={13} color="var(--text-secondary, #636366)" />
         </button>
       </div>
 
       {showMenu && (
         <div ref={menuRef} className={styles.contextMenu} onClick={e => e.stopPropagation()}>
-          <button className={styles.menuItem} onClick={e => { e.stopPropagation(); setShowMenu(false); setRenameValue(page.name); setRenaming(true) }}>
-            <PencilIcon size={13} color="var(--text-primary, #1C1C1E)" /> Rename
+          <button
+            className={styles.menuItem}
+            onClick={e => { e.stopPropagation(); setShowMenu(false); setRenameValue(page.name); setRenaming(true) }}
+          >
+            <PencilEditIcon size={13} color="var(--text-primary, #1C1C1E)" /> Rename
           </button>
-          <button className={styles.menuItem} onClick={e => { e.stopPropagation(); setShowMenu(false); onDuplicate(notebookId, page.id) }}>
+          <button
+            className={styles.menuItem}
+            onClick={e => { e.stopPropagation(); setShowMenu(false); onDuplicate(notebookId, page.id) }}
+          >
             <CopyIcon size={13} color="var(--text-primary, #1C1C1E)" /> Duplicate
           </button>
           <div className={styles.menuDivider} />
-          <button className={`${styles.menuItem} ${styles.menuItemDanger}`} onClick={e => { e.stopPropagation(); setShowMenu(false); onDelete(notebookId, page.id) }}>
+          <button
+            className={`${styles.menuItem} ${styles.menuItemDanger}`}
+            onClick={e => { e.stopPropagation(); setShowMenu(false); onDelete(notebookId, page.id) }}
+          >
             <TrashIcon size={13} color="var(--red, #FF3B30)" /> Delete
           </button>
         </div>
@@ -162,7 +148,7 @@ function PageCard({ page, notebookId, index, onClick, onRename, onDelete, onDupl
   )
 }
 
-// ── NotebookView ───────────────────────────────────────────────────────────────
+// ── NotebookView ───────────────────────────────────────────────────────────
 export default function NotebookView({
   notebook,
   onBack,
@@ -180,17 +166,19 @@ export default function NotebookView({
       {/* Dark top bar */}
       <div className={styles.topBar}>
         <button className={styles.backBtn} onClick={onBack}>
-          <BackIcon size={22} color="#FFFFFF" />
+          <BackIcon size={20} color="#FFFFFF" />
           <span className={styles.backLabel}>Notebooks</span>
         </button>
 
         <div className={styles.topBarCenter}>
           <span className={styles.notebookName}>{notebook.name}</span>
-          <span className={styles.pageCount}>{pages.length} {pages.length === 1 ? 'page' : 'pages'}</span>
+          <span className={styles.pageCount}>
+            {pages.length} {pages.length === 1 ? 'page' : 'pages'}
+          </span>
         </div>
 
         <button className={styles.addPageBtn} onClick={() => onAddPage(notebook.id)}>
-          <PlusIcon size={16} color="white" />
+          <PlusIcon size={15} color="white" />
           <span>Add Page</span>
         </button>
       </div>
@@ -199,13 +187,7 @@ export default function NotebookView({
       <div className={styles.content}>
         {pages.length === 0 ? (
           <div className={styles.empty}>
-            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-              <rect x="8" y="6" width="40" height="44" rx="5" fill="#E5E5EA"/>
-              <rect x="8" y="6" width="10" height="44" rx="5" fill="#D1D1D6"/>
-              <rect x="22" y="16" width="18" height="2.5" rx="1.25" fill="#AEAEB2"/>
-              <rect x="22" y="22" width="14" height="2.5" rx="1.25" fill="#AEAEB2"/>
-              <rect x="22" y="28" width="16" height="2.5" rx="1.25" fill="#AEAEB2"/>
-            </svg>
+            <PageIcon size={52} color="#AEAEB2" />
             <p className={styles.emptyTitle}>No pages yet</p>
             <button className={styles.emptyAddBtn} onClick={() => onAddPage(notebook.id)}>
               <PlusIcon size={14} color="white" /> Add Page
@@ -225,10 +207,9 @@ export default function NotebookView({
                 onDuplicate={onDuplicatePage}
               />
             ))}
-            {/* Add page card */}
             <div className={styles.addCard} onClick={() => onAddPage(notebook.id)}>
               <div className={styles.addCardIcon}>
-                <PlusIcon size={28} color="var(--blue, #007AFF)" />
+                <PlusIcon size={26} color="var(--blue, #007AFF)" />
               </div>
               <span className={styles.addCardLabel}>New Page</span>
             </div>

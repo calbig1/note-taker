@@ -1,4 +1,4 @@
-/* ── Root ── */
+/* ── Root — only provides the nav bar in normal flow ── */
 .root {
   display: flex;
   flex-direction: column;
@@ -16,7 +16,6 @@
   background: #1C1C1E;
   height: 48px;
   padding: 0 8px;
-  gap: 8px;
   flex-shrink: 0;
 }
 
@@ -30,7 +29,7 @@
 .navCenter {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
@@ -46,14 +45,10 @@
   display: flex;
   align-items: center;
   gap: 2px;
-  background: none;
-  border: none;
-  cursor: pointer;
   padding: 6px 8px;
   border-radius: 8px;
   transition: background 0.15s;
-  min-width: 0;
-  max-width: 180px;
+  max-width: 200px;
 }
 .backBtn:hover { background: rgba(255,255,255,0.1); }
 
@@ -67,78 +62,76 @@
 }
 
 .pageNavBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
+  width: 28px;
+  height: 28px;
   border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: background 0.15s;
 }
 .pageNavBtn:hover { background: rgba(255,255,255,0.12); }
-.pageNavBtnDim { opacity: 0.3; cursor: not-allowed; }
 
 .pageCounter {
   font-size: 13px;
   font-weight: 500;
   color: rgba(255,255,255,0.85);
-  min-width: 44px;
+  min-width: 42px;
   text-align: center;
 }
 
 .navBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
   width: 34px;
   height: 34px;
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   transition: background 0.15s;
   flex-shrink: 0;
 }
 .navBtn:hover { background: rgba(255,255,255,0.12); }
-.navBtnDim { opacity: 0.3; cursor: not-allowed; }
 .navBtnActive { background: rgba(255,255,255,0.2) !important; }
+
+.dim { opacity: 0.3; cursor: not-allowed; }
 
 .navSep {
   width: 1px;
   height: 20px;
-  background: rgba(255,255,255,0.15);
-  margin: 0 4px;
+  background: rgba(255,255,255,0.14);
+  margin: 0 3px;
   flex-shrink: 0;
 }
 
 .zoomLabel {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255,255,255,0.75);
+  color: rgba(255,255,255,0.7);
   min-width: 36px;
   text-align: center;
 }
 
-/* ── Palette ── */
-.palette {
+/* ── Floating vertical tool panel ── */
+.panel {
+  position: fixed;
+  left: 12px;
+  top: 60px;
+  z-index: 200;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow:
+    0 4px 24px rgba(0,0,0,0.14),
+    0 0 0 0.5px rgba(0,0,0,0.07);
+  padding: 8px 6px;
   display: flex;
-  align-items: center;
-  background: #FFFFFF;
-  height: 56px;
-  padding: 0 12px;
-  gap: 0;
-  border-bottom: 0.5px solid rgba(0,0,0,0.12);
-  flex-shrink: 0;
-  overflow: hidden;
-}
-
-.toolRow {
-  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 2px;
-  flex-shrink: 0;
+  min-width: 60px;
+}
+
+/* ── Tool stack ── */
+.toolStack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
 }
 
 .toolBtn {
@@ -146,14 +139,11 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  width: 52px;
-  height: 44px;
-  border: none;
-  background: none;
+  gap: 3px;
+  width: 50px;
+  height: 48px;
   border-radius: 10px;
-  cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.12s;
   color: #3C3C43;
 }
 .toolBtn:hover { background: rgba(0,0,0,0.05); }
@@ -163,42 +153,38 @@
 }
 
 .toolLabel {
-  font-size: 9.5px;
-  font-weight: 500;
+  font-size: 9px;
+  font-weight: 600;
   color: inherit;
   line-height: 1;
   pointer-events: none;
+  letter-spacing: 0.1px;
 }
 
-.paletteDivider {
-  width: 1px;
-  height: 28px;
-  background: rgba(0,0,0,0.1);
-  margin: 0 6px;
+/* ── Panel divider ── */
+.panelDivider {
+  width: 36px;
+  height: 1px;
+  background: rgba(0,0,0,0.09);
+  margin: 4px 0;
   flex-shrink: 0;
 }
 
-/* ── Shape row ── */
+/* ── Shape sub-type row ── */
 .shapeRow {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
+  gap: 3px;
 }
 
 .shapeBtn {
   width: 34px;
-  height: 34px;
-  border: none;
-  background: none;
+  height: 30px;
   border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
+  transition: background 0.12s;
 }
-.shapeBtn:hover { background: rgba(0,0,0,0.07); }
+.shapeBtn:hover { background: rgba(0,0,0,0.06); }
 .shapeBtnActive { background: #007AFF !important; }
 
 /* ── Color swatch ── */
@@ -206,10 +192,10 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: none;
-  cursor: pointer;
   flex-shrink: 0;
-  transition: transform 0.15s, box-shadow 0.15s;
+  border: 2px solid rgba(0,0,0,0.08);
+  transition: transform 0.15s;
+  cursor: pointer;
 }
 .colorSwatch:hover { transform: scale(1.1); }
 .colorSwatchOpen {
@@ -220,20 +206,20 @@
 /* ── Recent colors ── */
 .recentColors {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 5px;
-  margin: 0 6px;
-  flex-shrink: 0;
+  padding: 2px 0;
 }
 
 .recentDot {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  transition: transform 0.12s;
   flex-shrink: 0;
+  border: 1.5px solid rgba(0,0,0,0.06);
+  transition: transform 0.12s;
+  cursor: pointer;
 }
 .recentDot:hover { transform: scale(1.15); }
 .recentDotActive {
@@ -244,26 +230,30 @@
 /* ── Size control ── */
 .sizeControl {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
+  gap: 5px;
+  padding: 2px 0 4px;
 }
 
 .sizePreview {
   flex-shrink: 0;
   transition: width 0.12s, height 0.12s;
+  min-width: 4px;
+  min-height: 4px;
 }
 
 .sizeSlider {
   -webkit-appearance: none;
   appearance: none;
-  width: 90px;
-  height: 4px;
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 4px;
+  height: 72px;
   border-radius: 2px;
   background: #D1D1D6;
   outline: none;
   cursor: pointer;
-  flex-shrink: 0;
 }
 .sizeSlider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -276,86 +266,22 @@
 }
 
 .sizeVal {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   color: #636366;
-  min-width: 22px;
 }
 
 /* ── Color wheel popup ── */
 .colorPop {
-  position: absolute;
-  top: 108px;
-  left: 50%;
-  transform: translateX(-50%);
+  position: fixed;
+  top: 60px;
+  left: 80px;
   z-index: 500;
   filter: drop-shadow(0 8px 32px rgba(0,0,0,0.22));
   animation: popIn 0.15s ease;
 }
 
-/* ── Tool options popup ── */
-.toolOptsPop {
-  position: absolute;
-  top: 108px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 500;
-  background: white;
-  border-radius: 14px;
-  padding: 16px 20px;
-  min-width: 240px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 0 0 0.5px rgba(0,0,0,0.06);
-  animation: popIn 0.15s ease;
-}
-
-.toolOptsTitle {
-  font-size: 14px;
-  font-weight: 700;
-  color: #1C1C1E;
-  margin-bottom: 14px;
-}
-
-.optRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.optLabel {
-  font-size: 13px;
-  color: #636366;
-  min-width: 32px;
-}
-
-.optSlider {
-  -webkit-appearance: none;
-  appearance: none;
-  flex: 1;
-  height: 4px;
-  border-radius: 2px;
-  background: #D1D1D6;
-  outline: none;
-  cursor: pointer;
-}
-.optSlider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #007AFF;
-  cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-}
-
-.optVal {
-  font-size: 12px;
-  font-weight: 600;
-  color: #636366;
-  min-width: 36px;
-  text-align: right;
-}
-
 @keyframes popIn {
-  from { opacity: 0; transform: translateX(-50%) scale(0.92); }
-  to { opacity: 1; transform: translateX(-50%) scale(1); }
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
 }

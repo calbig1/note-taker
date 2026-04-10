@@ -14,20 +14,19 @@
   justify-content: space-between;
   background: #1C1C1E;
   height: 52px;
-  padding: 0 12px;
+  padding: 0 14px;
   flex-shrink: 0;
+  position: relative;
 }
 
 .backBtn {
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  cursor: pointer;
+  gap: 3px;
   padding: 6px 8px;
   border-radius: 8px;
   transition: background 0.15s;
+  z-index: 1;
 }
 .backBtn:hover { background: rgba(255,255,255,0.1); }
 
@@ -59,7 +58,8 @@
 
 .pageCount {
   font-size: 11px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.1px;
 }
 
 .addPageBtn {
@@ -72,11 +72,10 @@
   font-weight: 600;
   padding: 7px 14px;
   border-radius: 10px;
-  border: none;
-  cursor: pointer;
   transition: background 0.15s;
+  z-index: 1;
 }
-.addPageBtn:hover { background: #0056CC; }
+.addPageBtn:hover { background: #0066D6; }
 
 /* ── Content ── */
 .content {
@@ -99,13 +98,13 @@
   border-radius: 12px;
   overflow: visible;
   background: white;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.09);
   cursor: pointer;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 .pageCard:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.14);
 }
 
 .thumbWrapper {
@@ -127,11 +126,11 @@
   position: absolute;
   top: 7px;
   left: 8px;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0,0,0,0.32);
   color: white;
   font-size: 10px;
   font-weight: 700;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 20px;
   backdrop-filter: blur(4px);
 }
@@ -142,7 +141,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 10px;
-  border-top: 0.5px solid rgba(0,0,0,0.08);
+  border-top: 0.5px solid rgba(0,0,0,0.07);
   gap: 6px;
 }
 
@@ -162,12 +161,6 @@
   width: 24px;
   height: 24px;
   border-radius: 5px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   opacity: 0;
   transition: opacity 0.15s, background 0.15s;
   flex-shrink: 0;
@@ -182,7 +175,7 @@
   right: 0;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.15), 0 0 0 0.5px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.06);
   overflow: hidden;
   z-index: 100;
   min-width: 150px;
@@ -195,8 +188,6 @@
   gap: 8px;
   width: 100%;
   padding: 10px 14px;
-  border: none;
-  background: none;
   font-size: 13.5px;
   font-weight: 500;
   color: var(--text-primary, #1C1C1E);
@@ -209,11 +200,9 @@
 
 .menuDivider {
   height: 0.5px;
-  background: rgba(0,0,0,0.1);
-  margin: 0;
+  background: rgba(0,0,0,0.08);
 }
 
-/* ── Rename input ── */
 .renameInput {
   flex: 1;
   font-size: 12px;
@@ -269,6 +258,7 @@
   justify-content: center;
   gap: 12px;
   height: 60%;
+  opacity: 0.6;
 }
 
 .emptyTitle {
@@ -287,11 +277,10 @@
   font-weight: 600;
   padding: 9px 18px;
   border-radius: 10px;
-  border: none;
-  cursor: pointer;
   transition: background 0.15s;
+  opacity: 1;
 }
-.emptyAddBtn:hover { background: #0056CC; }
+.emptyAddBtn:hover { background: #0066D6; }
 
 @keyframes fadeIn {
   from { opacity: 0; }
