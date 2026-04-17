@@ -1,7 +1,10 @@
 export const PAPER_COLORS = {
-  white: '#FFFFFF',
-  black: '#1a1a1a',
-  beige: '#F5E6C8',
+  white:  '#FFFFFF',
+  black:  '#1a1a1a',
+  beige:  '#F5E6C8',
+  blue:   '#EEF2FF',
+  green:  '#ECFDF5',
+  yellow: '#FEFCE8',
 }
 
 export const LINE_COLORS = {
@@ -36,6 +39,14 @@ export function drawPaper(ctx, page, canvasWidth, canvasHeight) {
     drawDotGrid(ctx, paperColor, lineSpacing, canvasWidth, canvasHeight)
   } else if (paperType === 'whiteboard') {
     drawWhiteboardPaper(ctx, paperColor, canvasWidth, canvasHeight)
+  } else if (paperType === 'cornell') {
+    drawCornellPaper(ctx, paperColor, lineSpacing, canvasWidth, canvasHeight)
+  } else if (paperType === 'musicstaff') {
+    drawMusicStaff(ctx, paperColor, lineSpacing, canvasWidth, canvasHeight)
+  } else if (paperType === 'plannerday') {
+    drawPlannerDay(ctx, paperColor, canvasWidth, canvasHeight)
+  } else if (paperType === 'isometric') {
+    drawIsometricGrid(ctx, paperColor, canvasWidth, canvasHeight)
   }
   // 'unlined' = just the fill, nothing else
 }
@@ -85,6 +96,133 @@ function drawDotGrid(ctx, paperColor, spacing, w, h) {
   ctx.fillStyle = dotColor
   for (let y = spacing; y < h; y += spacing) {
     for (let x = spacing; x < w; x += spacing) {
+      ctx.beginPath()
+      ctx.arc(x, y, 1.5, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+}
+
+function drawCornellPaper(ctx, paperColor, lineSpacing, w, h) {
+  const lineColor = LINE_COLORS[paperColor] ?? LINE_COLORS.white
+  const marginColor = MARGIN_COLORS[paperColor] ?? MARGIN_COLORS.white
+  const spacing = lineSpacing || 32
+  const cueCol = 200  // cue column width
+  const summaryRow = h - 180  // summary area height from bottom
+
+  // Horizontal lines (main area)
+  ctx.strokeStyle = lineColor
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  for (let y = spacing * 3; y < summaryRow; y += spacing) {
+    ctx.moveTo(0, y + 0.5)
+    ctx.lineTo(w, y + 0.5)
+  }
+  ctx.stroke()
+
+  // Cue column vertical line
+  ctx.strokeStyle = marginColor
+  ctx.lineWidth = 1.5
+  ctx.beginPath()
+  ctx.moveTo(cueCol + 0.5, 0)
+  ctx.lineTo(cueCol + 0.5, summaryRow)
+  ctx.stroke()
+
+  // Summary area horizontal line
+  ctx.beginPath()
+  ctx.moveTo(0, summaryRow + 0.5)
+  ctx.lineTo(w, summaryRow + 0.5)
+  ctx.stroke()
+
+  // Labels
+  ctx.fillStyle = lineColor
+  ctx.font = '14px -apple-system, sans-serif'
+  ctx.fillText('Cue / Keywords', 12, spacing * 2)
+  ctx.fillText('Notes', cueCol + 16, spacing * 2)
+  ctx.fillText('Summary', 16, summaryRow + 24)
+}
+
+function drawMusicStaff(ctx, paperColor, lineSpacing, w, h) {
+  const lineColor = LINE_COLORS[paperColor] ?? LINE_COLORS.white
+  const staffSpacing = 8  // px between staff lines
+  const staffGap = 60  // px between staves
+  const startY = 60
+  const margin = 40
+
+  ctx.strokeStyle = lineColor
+  ctx.lineWidth = 1.2
+  ctx.beginPath()
+  let y = startY
+  while (y + staffSpacing * 4 < h - margin) {
+    for (let i = 0; i < 5; i++) {
+      ctx.moveTo(margin, y + i * staffSpacing + 0.5)
+      ctx.lineTo(w - margin, y + i * staffSpacing + 0.5)
+    }
+    y += staffSpacing * 4 + staffGap
+  }
+  ctx.stroke()
+}
+
+function drawPlannerDay(ctx, paperColor, w, h) {
+  const lineColor = LINE_COLORS[paperColor] ?? LINE_COLORS.white
+  const marginColor = MARGIN_COLORS[paperColor] ?? MARGIN_COLORS.white
+  const headerH = 80
+  const timeCol = 90
+  const lineSpacing = 44
+
+  // Header area border
+  ctx.strokeStyle = lineColor
+  ctx.lineWidth = 1.5
+  ctx.beginPath()
+  ctx.moveTo(0, headerH + 0.5)
+  ctx.lineTo(w, headerH + 0.5)
+  ctx.stroke()
+
+  // Time column
+  ctx.strokeStyle = marginColor
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(timeCol + 0.5, headerH)
+  ctx.lineTo(timeCol + 0.5, h)
+  ctx.stroke()
+
+  // Divider in middle
+  ctx.strokeStyle = lineColor
+  ctx.lineWidth = 1
+  ctx.beginPath()
+  ctx.moveTo(w / 2 + 0.5, headerH)
+  ctx.lineTo(w / 2 + 0.5, h)
+  ctx.stroke()
+
+  // Hour lines
+  ctx.beginPath()
+  for (let y = headerH + lineSpacing; y < h; y += lineSpacing) {
+    ctx.moveTo(0, y + 0.5)
+    ctx.lineTo(w, y + 0.5)
+  }
+  ctx.stroke()
+
+  // Time labels
+  ctx.fillStyle = lineColor
+  ctx.font = '11px -apple-system, sans-serif'
+  const startHour = 7
+  for (let i = 0; i * lineSpacing + headerH + lineSpacing < h; i++) {
+    const hour = (startHour + i) % 24
+    const label = hour < 12 ? `${hour === 0 ? 12 : hour} AM` : `${hour === 12 ? 12 : hour - 12} PM`
+    ctx.fillText(label, 6, headerH + (i + 1) * lineSpacing - 4)
+  }
+}
+
+function drawIsometricGrid(ctx, paperColor, w, h) {
+  const dotColor = DOT_COLORS[paperColor] ?? DOT_COLORS.white
+  const spacing = 24
+  const rowHeight = spacing * Math.sin(Math.PI / 3)
+
+  ctx.fillStyle = dotColor
+  for (let row = 0; row * rowHeight < h + spacing; row++) {
+    const offsetX = (row % 2) * (spacing / 2)
+    const y = row * rowHeight
+    for (let x = offsetX; x < w + spacing; x += spacing) {
       ctx.beginPath()
       ctx.arc(x, y, 1.5, 0, Math.PI * 2)
       ctx.fill()

@@ -34,6 +34,29 @@ function rectIntersects(box, sel) {
   return box.x1 <= sel.x2 && box.x2 >= sel.x1 && box.y1 <= sel.y2 && box.y2 >= sel.y1
 }
 
+function pointInPolygon(point, polygon) {
+  let inside = false
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i].x, yi = polygon[i].y
+    const xj = polygon[j].x, yj = polygon[j].y
+    if (((yi > point.y) !== (yj > point.y)) &&
+        (point.x < (xj - xi) * (point.y - yi) / (yj - yi) + xi)) {
+      inside = !inside
+    }
+  }
+  return inside
+}
+
+function strokeCentroid(stroke) {
+  if (stroke.shapeType && stroke.start && stroke.end) {
+    return { x: (stroke.start.x + stroke.end.x) / 2, y: (stroke.start.y + stroke.end.y) / 2 }
+  }
+  if (!stroke.points || stroke.points.length === 0) return null
+  const sx = stroke.points.reduce((a, p) => a + p.x, 0) / stroke.points.length
+  const sy = stroke.points.reduce((a, p) => a + p.y, 0) / stroke.points.length
+  return { x: sx, y: sy }
+}
+
 const Canvas = forwardRef(function Canvas(
   { page, penType = 'ballpoint', shapeType = 'rect', color, size, zoom, onStrokesChange, onTextElementsChange, wristGuard },
   ref
@@ -49,13 +72,17 @@ const Canvas = forwardRef(function Canvas(
   const shapeStartRef = useRef(null)
   const previewShapeRef = useRef(null)
 
-  // Select
+  // Select (rectangular)
   const [selBox, setSelBox] = useState(null)
   const [selIds, setSelIds] = useState([])
   const selBoxRef = useRef(null)
   const movingRef = useRef(false)
   const moveStartRef = useRef(null)
   const selStrokesSnapshotRef = useRef([])
+
+  // Lasso select
+  const lassoPathRef = useRef([])
+  const [lassoPath, setLassoPath] = useState([])
 
   // Text
   const [textPos, setTextPos] = useState(null)
@@ -119,13 +146,31 @@ const Canvas = forwardRef(function Canvas(
       const bh = Math.abs(box.y2 - box.y1)
       ctx.save()
       if (selIds.length > 0) {
-        ctx.fillStyle = 'rgba(37,99,235,0.07)'
+        ctx.fillStyle = 'rgba(99,102,241,0.08)'
         ctx.fillRect(bx - 2, by - 2, bw + 4, bh + 4)
       }
-      ctx.strokeStyle = '#2563EB'
+      ctx.strokeStyle = '#6366F1'
       ctx.lineWidth = 1.5
       ctx.setLineDash([5, 4])
       ctx.strokeRect(bx, by, bw, bh)
+      ctx.setLineDash([])
+      ctx.restore()
+    }
+
+    // Draw lasso path
+    const lp = lassoPathRef.current
+    if (lp.length > 2) {
+      ctx.save()
+      ctx.beginPath()
+      ctx.moveTo(lp[0].x, lp[0].y)
+      lp.slice(1).forEach(p => ctx.lineTo(p.x, p.y))
+      ctx.closePath()
+      ctx.strokeStyle = '#6366F1'
+      ctx.lineWidth = 1.5
+      ctx.setLineDash([4, 3])
+      ctx.stroke()
+      ctx.fillStyle = 'rgba(99,102,241,0.06)'
+      ctx.fill()
       ctx.setLineDash([])
       ctx.restore()
     }
@@ -205,7 +250,7 @@ const Canvas = forwardRef(function Canvas(
       penActiveRef.current = true
     } else if (e.pointerType === 'touch') {
       if (wristGuard) return
-      if (!['eraser', 'hand', 'select', 'text'].includes(penType)) return
+      if (!['eraser', 'hand', 'select', 'lasso', 'text'].includes(penType)) return
     }
 
     e.preventDefault()
@@ -217,6 +262,31 @@ const Canvas = forwardRef(function Canvas(
     if (penType === 'text') {
       setTextPos({ screenX: pt.screenX, screenY: pt.screenY, canvasX: pt.x, canvasY: pt.y })
       setTextValue('')
+      return
+    }
+
+    if (penType === 'lasso') {
+      // Check if clicking inside existing lasso selection to move
+      if (selIds.length > 0 && lassoPathRef.current.length > 2) {
+        const centroid = { x: 0, y: 0 }
+        lassoPathRef.current.forEach(p => { centroid.x += p.x; centroid.y += p.y })
+        centroid.x /= lassoPathRef.current.length
+        centroid.y /= lassoPathRef.current.length
+        if (pointInPolygon(pt, lassoPathRef.current)) {
+          movingRef.current = true
+          moveStartRef.current = { x: pt.x, y: pt.y }
+          selStrokesSnapshotRef.current = page.strokes.filter(s => selIds.includes(s.id))
+          isDrawing.current = true
+          return
+        }
+      }
+      movingRef.current = false
+      setSelIds([])
+      lassoPathRef.current = [{ x: pt.x, y: pt.y }]
+      setLassoPath([{ x: pt.x, y: pt.y }])
+      selBoxRef.current = null
+      setSelBox(null)
+      isDrawing.current = true
       return
     }
 
@@ -264,9 +334,25 @@ const Canvas = forwardRef(function Canvas(
 
   const onPointerMove = useCallback((e) => {
     if (!isDrawing.current) return
-    if (e.pointerType === 'touch' && !['eraser', 'select'].includes(penType)) return
+    if (e.pointerType === 'touch' && !['eraser', 'select', 'lasso'].includes(penType)) return
     e.preventDefault()
     const pt = getPoint(e)
+
+    if (penType === 'lasso') {
+      if (movingRef.current && moveStartRef.current) {
+        const dx = pt.x - moveStartRef.current.x
+        const dy = pt.y - moveStartRef.current.y
+        // Update lasso path position
+        lassoPathRef.current = lassoPathRef.current.map(p => ({ x: p.x + dx, y: p.y + dy }))
+        moveStartRef.current = { x: pt.x, y: pt.y }
+        selStrokesSnapshotRef.current = page.strokes.filter(s => selIds.includes(s.id))
+      } else {
+        lassoPathRef.current = [...lassoPathRef.current, { x: pt.x, y: pt.y }]
+        setLassoPath([...lassoPathRef.current])
+      }
+      redrawVisible()
+      return
+    }
 
     if (penType === 'select') {
       if (movingRef.current && moveStartRef.current) {
@@ -319,6 +405,41 @@ const Canvas = forwardRef(function Canvas(
     if (e.pointerType === 'pen') setTimeout(() => { penActiveRef.current = false }, 200)
 
     const pt = getPoint(e)
+
+    if (penType === 'lasso') {
+      if (movingRef.current && moveStartRef.current) {
+        const dx = pt.x - moveStartRef.current.x
+        const dy = pt.y - moveStartRef.current.y
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+          onStrokesChange(prev => prev.map(s => {
+            if (!selIds.includes(s.id)) return s
+            if (s.shapeType) return { ...s, start: { x: s.start.x + dx, y: s.start.y + dy }, end: { x: s.end.x + dx, y: s.end.y + dy } }
+            return { ...s, points: s.points.map(p => ({ ...p, x: p.x + dx, y: p.y + dy })) }
+          }))
+        }
+        movingRef.current = false
+        moveStartRef.current = null
+      } else if (lassoPathRef.current.length > 2) {
+        const polygon = lassoPathRef.current
+        const found = page.strokes
+          .filter(s => {
+            const c = strokeCentroid(s)
+            return c && pointInPolygon(c, polygon)
+          })
+          .map(s => s.id)
+        setSelIds(found)
+        if (found.length === 0) {
+          lassoPathRef.current = []
+          setLassoPath([])
+        }
+      } else {
+        lassoPathRef.current = []
+        setLassoPath([])
+        setSelIds([])
+      }
+      redrawVisible()
+      return
+    }
 
     if (penType === 'select') {
       if (movingRef.current && moveStartRef.current) {
@@ -380,6 +501,7 @@ const Canvas = forwardRef(function Canvas(
 
   const cursorStyle = penType === 'eraser' ? 'cell'
     : penType === 'select' ? (selIds.length > 0 ? 'move' : 'crosshair')
+    : penType === 'lasso' ? (selIds.length > 0 ? 'move' : 'crosshair')
     : penType === 'text' ? 'text'
     : penType === 'hand' ? 'grab'
     : 'crosshair'

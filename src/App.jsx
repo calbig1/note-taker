@@ -10,14 +10,14 @@ import { getInitialState, createPage, createNotebook } from './utils/initialStat
 import styles from './App.module.css'
 
 const MAX_HISTORY = 60
+const MAX_RECENT = 20
 
-// ── Splash / Loading Screen ─────────────────────────────────────────────────
+// ── Splash Screen ────────────────────────────────────────────────────────────
 function SplashScreen({ onDone }) {
   const [hiding, setHiding] = useState(false)
-
   useEffect(() => {
-    const t1 = setTimeout(() => setHiding(true), 1600)
-    const t2 = setTimeout(() => onDone(), 2100)
+    const t1 = setTimeout(() => setHiding(true), 1400)
+    const t2 = setTimeout(() => onDone(), 1900)
     return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [onDone])
 
@@ -25,15 +25,15 @@ function SplashScreen({ onDone }) {
     <div className={`${styles.splash} ${hiding ? styles.splashHide : ''}`}>
       <div className={styles.splashContent}>
         <div className={styles.splashLogoWrap}>
-          {/* Notebook icon */}
           <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
-            <rect x="14" y="8" width="44" height="56" rx="6" fill="#FFFFFF" fillOpacity="0.15"/>
-            <rect x="18" y="8" width="40" height="56" rx="6" fill="#FFFFFF"/>
-            <rect x="14" y="8" width="8" height="56" rx="4" fill="#FFFFFF" fillOpacity="0.4"/>
-            <rect x="26" y="22" width="22" height="2.5" rx="1.25" fill="#007AFF" fillOpacity="0.5"/>
-            <rect x="26" y="30" width="18" height="2.5" rx="1.25" fill="#007AFF" fillOpacity="0.4"/>
-            <rect x="26" y="38" width="20" height="2.5" rx="1.25" fill="#007AFF" fillOpacity="0.3"/>
-            <rect x="26" y="46" width="14" height="2.5" rx="1.25" fill="#007AFF" fillOpacity="0.2"/>
+            <rect width="72" height="72" rx="20" fill="#6366F1"/>
+            <rect x="14" y="10" width="44" height="52" rx="6" fill="white" fillOpacity="0.15"/>
+            <rect x="18" y="10" width="40" height="52" rx="6" fill="white"/>
+            <rect x="14" y="10" width="9" height="52" rx="4.5" fill="white" fillOpacity="0.45"/>
+            <rect x="27" y="24" width="22" height="2.5" rx="1.25" fill="#6366F1" fillOpacity="0.5"/>
+            <rect x="27" y="32" width="17" height="2.5" rx="1.25" fill="#6366F1" fillOpacity="0.4"/>
+            <rect x="27" y="40" width="20" height="2.5" rx="1.25" fill="#6366F1" fillOpacity="0.3"/>
+            <rect x="27" y="48" width="13" height="2.5" rx="1.25" fill="#6366F1" fillOpacity="0.2"/>
           </svg>
         </div>
         <h1 className={styles.splashTitle}>Note Taker</h1>
@@ -44,7 +44,52 @@ function SplashScreen({ onDone }) {
   )
 }
 
-// ── Main App ────────────────────────────────────────────────────────────────
+// ── Keyboard Shortcuts Modal ─────────────────────────────────────────────────
+function ShortcutsModal({ onClose }) {
+  const shortcuts = [
+    { key: 'P', desc: 'Ballpoint pen' },
+    { key: 'F', desc: 'Fountain pen' },
+    { key: 'B', desc: 'Brush' },
+    { key: 'C', desc: 'Pencil' },
+    { key: 'H', desc: 'Highlighter' },
+    { key: 'E', desc: 'Eraser' },
+    { key: 'S', desc: 'Select' },
+    { key: 'L', desc: 'Lasso select' },
+    { key: 'T', desc: 'Text tool' },
+    { key: '⌘Z', desc: 'Undo' },
+    { key: '⌘⇧Z', desc: 'Redo' },
+    { key: '+', desc: 'Zoom in' },
+    { key: '-', desc: 'Zoom out' },
+    { key: '⌘0', desc: 'Reset zoom' },
+    { key: 'Del', desc: 'Delete selected' },
+    { key: 'Esc', desc: 'Cancel / deselect' },
+  ]
+  return (
+    <div className={styles.shortcutsOverlay} onClick={onClose}>
+      <div className={styles.shortcutsPanel} onClick={e => e.stopPropagation()}>
+        <div className={styles.shortcutsHeader}>
+          <h2 className={styles.shortcutsTitle}>Keyboard Shortcuts</h2>
+          <button className={styles.shortcutsClose} onClick={onClose}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <line x1="2" y1="2" x2="14" y2="14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="14" y1="2" x2="2" y2="14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <div className={styles.shortcutsGrid}>
+          {shortcuts.map(({ key, desc }) => (
+            <div key={key} className={styles.shortcutRow}>
+              <kbd className={styles.shortcutKey}>{key}</kbd>
+              <span className={styles.shortcutDesc}>{desc}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [loading, setLoading] = useState(true)
   const [state, setState] = useState(() => loadState() ?? getInitialState())
@@ -56,6 +101,21 @@ export default function App() {
   const [zoom, setZoom] = useState(1)
   const [showPageSettings, setShowPageSettings] = useState(false)
   const [wristGuard, setWristGuard] = useState(false)
+  const [showShortcuts, setShowShortcuts] = useState(false)
+  const [darkMode, setDarkMode] = useState(true)
+
+  // Favorites: array of notebook IDs
+  const [favorites, setFavorites] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('nt_favorites') ?? '[]') } catch { return [] }
+  })
+
+  // Recent notebooks: [{ id, openedAt }]
+  const [recentNotebooks, setRecentNotebooks] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('nt_recent') ?? '[]') } catch { return [] }
+  })
+
+  useEffect(() => { localStorage.setItem('nt_favorites', JSON.stringify(favorites)) }, [favorites])
+  useEffect(() => { localStorage.setItem('nt_recent', JSON.stringify(recentNotebooks)) }, [recentNotebooks])
 
   const historyRef = useRef({})
   const canvasRef = useRef(null)
@@ -75,10 +135,12 @@ export default function App() {
       if (e.key === 'h') setPenType('highlighter')
       if (e.key === 'e') setPenType('eraser')
       if (e.key === 's') setPenType('select')
+      if (e.key === 'l') setPenType('lasso')
       if (e.key === 't') setPenType('text')
       if (e.key === '=' || e.key === '+') setZoom(z => Math.min(3, +(z + 0.1).toFixed(2)))
       if (e.key === '-') setZoom(z => Math.max(0.25, +(z - 0.1).toFixed(2)))
       if (mod && e.key === '0') { e.preventDefault(); setZoom(1) }
+      if (e.key === '?') setShowShortcuts(s => !s)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -164,9 +226,17 @@ export default function App() {
     updatePageData(activePage.id, { strokes: next })
   }
 
+  function recordRecent(id) {
+    setRecentNotebooks(prev => {
+      const filtered = prev.filter(r => r.id !== id)
+      return [{ id, openedAt: Date.now() }, ...filtered].slice(0, MAX_RECENT)
+    })
+  }
+
   function handleOpenNotebook(id) {
     const nb = state.notebooks.find(n => n.id === id)
     if (!nb) return
+    recordRecent(id)
     setState(prev => ({ ...prev, activeNotebookId: id, activePageId: nb.pages[0]?.id ?? prev.activePageId }))
     setView('notebook')
   }
@@ -207,8 +277,8 @@ export default function App() {
     setState(prev => ({ ...prev, activePageId: activeNotebook.pages[activePageIndex + 1].id }))
   }
 
-  function handleAddNotebook(name, coverColor) {
-    const nb = createNotebook({ name, coverColor })
+  function handleAddNotebook(name, coverColor, isQuickNotes = false) {
+    const nb = createNotebook({ name, coverColor, isQuickNotes })
     setState(prev => ({ ...prev, notebooks: [...prev.notebooks, nb], activeNotebookId: nb.id, activePageId: nb.pages[0].id }))
   }
 
@@ -228,7 +298,13 @@ export default function App() {
         activePageId: prev.activeNotebookId === id ? newActive.pages[0]?.id : prev.activePageId,
       }
     })
+    setFavorites(f => f.filter(fid => fid !== id))
+    setRecentNotebooks(r => r.filter(rec => rec.id !== id))
     if (state.activeNotebookId === id) setView('home')
+  }
+
+  function handleToggleFavorite(id) {
+    setFavorites(f => f.includes(id) ? f.filter(fid => fid !== id) : [...f, id])
   }
 
   function handleAddPage(notebookId) {
@@ -311,9 +387,7 @@ export default function App() {
 
   const history = activePage ? getHistory(activePage.id) : { past: [], future: [] }
 
-  if (loading) {
-    return <SplashScreen onDone={() => setLoading(false)} />
-  }
+  if (loading) return <SplashScreen onDone={() => setLoading(false)} />
 
   if (view === 'home') {
     return (
@@ -323,6 +397,11 @@ export default function App() {
         onAddNotebook={handleAddNotebook}
         onRenameNotebook={handleRenameNotebook}
         onDeleteNotebook={handleDeleteNotebook}
+        favorites={favorites}
+        onToggleFavorite={handleToggleFavorite}
+        recentNotebooks={recentNotebooks}
+        darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode(d => !d)}
       />
     )
   }
@@ -353,6 +432,7 @@ export default function App() {
         canUndo={history.past.length > 0} canRedo={history.future.length > 0}
         onExport={handleExport}
         onOpenPageSettings={() => setShowPageSettings(true)}
+        onShowShortcuts={() => setShowShortcuts(true)}
         notebookName={activeNotebook?.name ?? ''}
         pageName={activePage?.name ?? ''}
         onBack={() => setView('notebook')}
@@ -388,6 +468,8 @@ export default function App() {
           onClose={() => setShowPageSettings(false)}
         />
       )}
+
+      {showShortcuts && <ShortcutsModal onClose={() => setShowShortcuts(false)} />}
     </div>
   )
 }
